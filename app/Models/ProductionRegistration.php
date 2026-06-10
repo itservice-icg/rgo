@@ -59,6 +59,7 @@ class ProductionRegistration extends Model
         'is_deleted',
         'image',
         'document',
+        'additional_document',
         'progress',
         'sub_progress',
         'created_by',
@@ -94,5 +95,10 @@ class ProductionRegistration extends Model
     public function distributorCompany()
     {
         return $this->belongsTo(Company::class, 'distributor'); // 'store_company_1' is the foreign key
+    }
+
+    public function files()
+    {
+        return $this->hasMany(ProductionRegistrationFile::class, 'production_registration_id')->latest('id');
     }
 }

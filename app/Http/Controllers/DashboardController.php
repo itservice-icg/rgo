@@ -15,7 +15,7 @@ class DashboardController extends Controller
     public function index()
     {
         $today = now();
-        // ทะเบียนนำเข้าวัตถุดิบ
+        // ทะเบียนนำเข้าทั้งหมด
         $totalImport = ChemicalImport::count();
         $soonImport = ChemicalImport::whereDate('expired_license_date', '>=', Carbon::now())
             ->whereDate('expired_license_date', '<=', Carbon::now()->addMonths(6))

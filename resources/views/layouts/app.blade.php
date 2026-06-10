@@ -6,7 +6,7 @@
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <meta name="csrf-token" content="{{ csrf_token() }}">
-    <title>ระบบทะเบียนออนไลน์ (RGO)</title>
+    <title>ทะเบียนออนไลน์ (RGO)</title>
     <link rel="icon" type="image/png" href="{{ asset('images/logo2.png') }}">
     <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700&display=swap">
     <link rel="stylesheet" href="{{ asset('css/app.css') }}">
@@ -17,7 +17,7 @@
 </head>
 
 <body class="font-sans antialiased">
-    <div x-data="{ sidebarOpen: false }" class="flex h-screen">
+    <div x-data="{ sidebarOpen: false }" class="flex h-screen" style="min-height: 80vh;">
         {{-- <div :class="sidebarOpen ? 'block' : 'hidden'" @click="sidebarOpen = false"
             class="fixed z-20 inset-0 bg-black opacity-50 transition-opacity lg:hidden"></div> --}}
         {{-- 1. Desktop Sidebar --}}
@@ -28,8 +28,8 @@
         {{-- @include('layouts.sidebar') --}}
         <div class="flex-1 flex flex-col overflow-hidden ">
             @include('layouts.header')
-            <main class="overflow-y-auto">
-                <div class="p-4 content aa">
+            <main class="flex-1 overflow-y-auto" >
+                <div class="content min-h-full p-4 sm:p-6 lg:p-8" style="min-height: 90vh;">
                     {{ $slot }}
                 </div>
             </main>

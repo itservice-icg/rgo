@@ -1,5 +1,5 @@
 <div class="flex md:mt-0">
-    <nav class="side-nav text-white min-h-screen flex flex-col">
+    <nav class="side-nav text-white min-h-screen flex flex-col" style="padding-bottom: 1.25rem;">
         <div class="flex items-center justify-center py-6">
             <img alt="Logo" class="h-21" src="{{ asset('images/logo.png') }}" />
         </div>
@@ -11,6 +11,21 @@
                     <div class="side-menu__title mt-1">แดชบอร์ด</div>
                 </a>
             </li>
+         @php
+            if (auth()->check()) {
+                $user = auth()->user();
+
+                \Log::info('Current login user permissions', [
+                    'user_id' => $user->id,
+                    'name' => $user->name ?? null,
+                    'email' => $user->email ?? null,
+                    'roles' => $user->getRoleNames()->toArray(),
+                    'permissions' => $user->getAllPermissions()->pluck('name')->toArray(),
+                ]);
+            }
+         @endphp
+
+
             @canany('Inregister read', 'Inregister create', 'Inregister update', 'Inregister delete')
                 <li>
                     <a href="{{ route('import.index') }}" class="side-menu" id="menu-inregister">
@@ -109,7 +124,7 @@
                     </a>
                 </li>
             @endcanany
-            @canany('import_data_manufacture read', 'import_data_manufacture create')
+            <!-- @canany('import_data_manufacture read', 'import_data_manufacture create')
                 <li>
                     <a href="{{ route('index.import_data') }}" class="side-menu" id="menu-users">
                         <div class="side-menu__icon"><i data-lucide="import"></i></div>
@@ -124,7 +139,7 @@
                         <div class="side-menu__title">อัพโหลดทะเบียนนำเข้า</div>
                     </a>
                 </li>
-            @endcanany
+            @endcanany -->
         </ul>
         <p class="mt-auto p-4">Copyright 2025 รุ่น 1.0.0</p>
     </nav>

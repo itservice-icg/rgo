@@ -1,3 +1,19 @@
+<style>
+    .mobile-only {
+        display: none !important;
+    }
+
+    @media (max-width: 960px) {
+        .mobile-hidden {
+            display: none !important;
+        }
+
+        .mobile-only {
+            display: grid !important;
+        }
+    }
+</style>
+
 <x-app-layout>
     <main class="flex-1 overflow-x-hidden overflow-y-auto">
         {{-- <div class="rounded-2xl shadow-md max-w-full mx-auto py-10 px-4"> --}}
@@ -63,13 +79,29 @@
                         </div>
                     </div>
                     <h2 class="text-2xl font-bold text-blue-700 mb-4 tracking-wide">ทะเบียนนำเข้า</h2>
-                    <div class="grid grid-cols-3 gap-3 mt-2">
+                    <div class="grid grid-cols-3 gap-3 mt-2 mobile-hidden">
                         <div class="bg-green-100 border border-green-200 rounded-xl p-2 shadow-sm">
                             <p class="text-2xl font-bold text-green-600 mb-2 mt-2 tracking-wide">ทั้งหมด</p>
                             <p class="text-4xl text-green-600 font-extrabold mb-1">{{ $totalImport }}</p>
                         </div>
                         <div class="bg-yellow-100 border border-yellow-200 rounded-xl p-2 shadow-sm">
-                            <p class="text-xl font-bold text-yellow-600 mb-2 mt-2 tracking-wide">ใกล้หมดอายุ</p>
+                            <p class="text-2xl font-bold text-yellow-600 mb-2 mt-2 tracking-wide">ใกล้หมด</p>
+                            <p class="text-4xl text-yellow-600 font-extrabold mb-1">{{ $soonImport }}</p>
+                        </div>
+                        <div class="bg-red-100 border border-red-200 rounded-xl p-2 shadow-sm">
+                            <p class="text-2xl font-bold text-red-600 mb-2 mt-2 tracking-wide">หมดอายุ</p>
+                            {{-- <p class="md:text-xl font-bold text-red-600 mt-2">{{ $expiredImport }}</p> --}}
+                            <p class="text-4xl text-red-600 font-extrabold mb-1">{{ $expiredImport }}</p>
+
+                        </div>
+                    </div>
+                    <div class="grid grid-rows-3 gap-3 mt-2 mobile-only">
+                        <div class="bg-green-100 border border-green-200 rounded-xl p-2 shadow-sm">
+                            <p class="text-2xl font-bold text-green-600 mb-2 mt-2 tracking-wide">ทั้งหมด</p>
+                            <p class="text-4xl text-green-600 font-extrabold mb-1">{{ $totalImport }}</p>
+                        </div>
+                        <div class="bg-yellow-100 border border-yellow-200 rounded-xl p-2 shadow-sm">
+                            <p class="text-2xl font-bold text-yellow-600 mb-2 mt-2 tracking-wide">ใกล้หมด</p>
                             <p class="text-4xl text-yellow-600 font-extrabold mb-1">{{ $soonImport }}</p>
                         </div>
                         <div class="bg-red-100 border border-red-200 rounded-xl p-2 shadow-sm">
@@ -100,7 +132,7 @@
                     {{-- <h2 class="text-lg font-bold text-blue-700 mb-4 tracking-wide">ทะเบียนผลิต</h2> --}}
                     <h2 class="text-2xl font-bold text-blue-700 mb-4 tracking-wide">ทะเบียนผลิต</h2>
 
-                    <div class="grid grid-cols-3 gap-3 mt-2">
+                    <div class="grid grid-cols-3 gap-3 mt-2 mobile-hidden">
                         <div class="bg-green-100 border border-green-200 rounded-xl p-2 shadow-sm">
                             {{-- <p class="md:text-lg text-green-600">ทั้งหมด</p> --}}
                             <p class="text-2xl font-bold text-green-600 mb-2 mt-2 tracking-wide">ทั้งหมด</p>
@@ -108,8 +140,30 @@
                             <p class="text-4xl text-green-600 font-extrabold mb-1">{{ $totalProduct }}</p>
                         </div>
                         <div class="bg-yellow-100 border border-yellow-200 rounded-xl p-2 shadow-sm">
-                            {{-- <p class="md:text-lg text-yellow-600">ใกล้หมดอายุ</p> --}}
-                            <p class="text-xl font-bold text-yellow-600 mb-2 mt-2 tracking-wide">ใกล้หมดอายุ</p>
+                            {{-- <p class="md:text-lg text-yellow-600">ใกล้หมด</p> --}}
+                            <p class="text-2xl font-bold text-yellow-600 mb-2 mt-2 tracking-wide">ใกล้หมด</p>
+                            {{-- <p class="md:text-xl font-bold text-yellow-600 mt-2">{{ $soonProduct }}</p> --}}
+                            <p class="text-4xl text-yellow-600 font-extrabold mb-1">{{ $soonProduct }}</p>
+                        </div>
+                        <div class="bg-red-100 border border-red-200 rounded-xl p-2 shadow-sm">
+                            {{-- <p class="md:text-lg text-red-600">หมดอายุ</p> --}}
+                            <p class="text-2xl font-bold text-red-600 mb-2 mt-2 tracking-wide">หมดอายุ</p>
+
+                            {{-- <p class="md:text-xl font-bold text-red-600 mt-2">{{ $expiredProduct }}</p> --}}
+                            <p class="text-4xl text-red-600 font-extrabold mb-1">{{ $expiredProduct }}</p>
+
+                        </div>
+                    </div>
+                    <div class="grid grid-rows-3 gap-3 mt-2 mobile-only">
+                        <div class="bg-green-100 border border-green-200 rounded-xl p-2 shadow-sm">
+                            {{-- <p class="md:text-lg text-green-600">ทั้งหมด</p> --}}
+                            <p class="text-2xl font-bold text-green-600 mb-2 mt-2 tracking-wide">ทั้งหมด</p>
+                            {{-- <p class="md:text-xl font-bold text-green-600 mt-2">{{ $totalProduct }}</p> --}}
+                            <p class="text-4xl text-green-600 font-extrabold mb-1">{{ $totalProduct }}</p>
+                        </div>
+                        <div class="bg-yellow-100 border border-yellow-200 rounded-xl p-2 shadow-sm">
+                            {{-- <p class="md:text-lg text-yellow-600">ใกล้หมด</p> --}}
+                            <p class="text-2xl font-bold text-yellow-600 mb-2 mt-2 tracking-wide">ใกล้หมด</p>
                             {{-- <p class="md:text-xl font-bold text-yellow-600 mt-2">{{ $soonProduct }}</p> --}}
                             <p class="text-4xl text-yellow-600 font-extrabold mb-1">{{ $soonProduct }}</p>
                         </div>

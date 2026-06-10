@@ -3,16 +3,22 @@
 namespace App\Http\Controllers;
 
 use App\Models\ProductionRegistration; // Added automatically by --model flag
+use App\Models\ProductionRegistrationFile;
 use App\Models\ChemicalImport; // Added automatically by --model flag
 use Illuminate\Http\Request;
 use App\Models\Company;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Storage;
+use Illuminate\Validation\ValidationException;
 use Log;
 use Carbon\Carbon;
 
 
 class ProductionRegistrationController extends Controller
 {
+    private const DOCUMENT_TYPE_PRODUCTION_REGISTRATION = 'prod_reg';
+    private const DOCUMENT_TYPE_PRODUCTION_APPROVAL = 'prod_license';
+
     /**
      * Display a listing of the resource.
      */
@@ -76,7 +82,7 @@ class ProductionRegistrationController extends Controller
             if ($expiryDate->isPast()) {
                 $import->status = 'หมดอายุ';
             } elseif ($expiryDate->diffInMonths($now) <= 6) {
-                $import->status = 'ใกล้หมดอายุ';
+                $import->status = 'ใกล้หมด';
             } else {
                 $import->status = 'ใช้งานอยู่';
             }
@@ -191,6 +197,7 @@ class ProductionRegistrationController extends Controller
     public function show(ProductionRegistration $productionRegistration)
     {
         // The $productionRegistration instance is automatically resolved by Route Model Binding
+        $productionRegistration->load('files');
         $product = $productionRegistration;
         $companies = Company::all();
         return view('production_registrations.show', compact('product', 'companies'));
@@ -201,10 +208,65 @@ class ProductionRegistrationController extends Controller
      */
     public function edit(ProductionRegistration $productionRegistration)
     {
+        $productionRegistration->load('files');
         $companies = Company::all();
         // ถ้าต้องการใช้ชื่อ $import ใน Blade ก็ map เพิ่ม
         $import = $productionRegistration;
         return view('production_registrations.edit', compact('import', 'companies'));
+    }
+
+    public function additionalDocument(ProductionRegistration $productionRegistration)
+    {
+        $file = $productionRegistration->files()->first();
+
+        if ($file) {
+            return $this->serveProductionRegistrationFile($file);
+        }
+
+        $filePath = $productionRegistration->additional_document ?: $productionRegistration->document;
+
+        abort_unless($filePath, 404);
+
+        $disk = Storage::disk('public');
+        abort_unless($disk->exists($filePath), 404);
+
+        $path = $disk->path($filePath);
+        $fileName = basename($filePath);
+
+        return response()->file($path, [
+            'Content-Type' => $disk->mimeType($filePath) ?: 'application/pdf',
+            'Content-Disposition' => 'inline; filename="' . addslashes($fileName) . '"',
+            'X-Content-Type-Options' => 'nosniff',
+            'Cache-Control' => 'private, no-store, no-cache, must-revalidate',
+        ]);
+    }
+
+    public function file(ProductionRegistration $productionRegistration, ProductionRegistrationFile $file)
+    {
+        abort_unless((int) $file->production_registration_id === (int) $productionRegistration->id, 404);
+
+        return $this->serveProductionRegistrationFile($file);
+    }
+
+    public function destroyFile(ProductionRegistration $productionRegistration, ProductionRegistrationFile $file)
+    {
+        abort_unless((int) $file->production_registration_id === (int) $productionRegistration->id, 404);
+
+        if ($file->file_path && Storage::disk('public')->exists($file->file_path)) {
+            Storage::disk('public')->delete($file->file_path);
+        }
+
+        $file->forceDelete();
+
+        $latestFile = $productionRegistration->files()->first();
+        $productionRegistration->update([
+            'additional_document' => $latestFile?->file_path,
+            'document' => $latestFile?->original_name,
+        ]);
+
+        return redirect()->back()
+            ->with('success', 'ลบเอกสารสำเร็จ')
+            ->with('file_deleted', true);
     }
 
     /**
@@ -215,6 +277,8 @@ class ProductionRegistrationController extends Controller
 
         // dd( $request->all());
         try {
+            $maxFileColumn = $this->maxFileColumn();
+
             $request->merge([
                 'expired_license_date'  => $this->convertDate($request->input('expired_license_date')),
                 'registration_expiry_date'  => $this->convertDate($request->input('registration_expiry_date')),
@@ -258,14 +322,48 @@ class ProductionRegistrationController extends Controller
                 'status_date' => 'nullable|string|max:255',
                 'remarks' => 'nullable|string|max:1000',
                 'image' => 'nullable|image|max:2048', // optional: 'image' if you want to allow changing image
-                'document' => 'nullable|file|mimes:pdf,doc,docx|max:5120', // optional: 'file' if you want to allow changing document
+                'additional_document' => 'nullable|array',
+                'additional_document.*' => 'file|mimes:pdf,doc,docx|max:5120',
+                'production_registration_documents' => 'nullable|array|max:' . $maxFileColumn,
+                'production_registration_documents.*' => 'file|mimes:pdf,doc,docx|max:5120',
+                'production_approval_documents' => 'nullable|array|max:' . $maxFileColumn,
+                'production_approval_documents.*' => 'file|mimes:pdf,doc,docx|max:5120',
                 'progress' => 'nullable|numeric|min:0|max:100',
                 'sub_progress' => 'nullable|numeric|min:0|max:100',
                 // หมายเหตุ: สำหรับฟิลด์ที่ไม่จำเป็นต้องเปลี่ยนผ่านฟอร์ม (เช่น created_by, is_deleted) ไม่ต้องใส่ใน validation rules
+            ], [
+                'production_registration_documents.max' => 'อัปโหลดไฟล์ทะเบียนผลิตได้ไม่เกิน ' . $maxFileColumn . ' ไฟล์',
+                'production_approval_documents.max' => 'อัปโหลดไฟล์ใบอนุญาตผลิตได้ไม่เกิน ' . $maxFileColumn . ' ไฟล์',
             ]);
 
             // 2. Map ข้อมูลและกำหนดค่าเพิ่มเติม (คล้ายกับ Store แต่ไม่มี created_by)
+            $newRegistrationFileCount = $this->uploadedFileCount($request, 'production_registration_documents')
+                + $this->uploadedFileCount($request, 'additional_document');
+            $newApprovalFileCount = $this->uploadedFileCount($request, 'production_approval_documents');
+
+            $this->ensureProductionFileLimit(
+                $import,
+                self::DOCUMENT_TYPE_PRODUCTION_REGISTRATION,
+                $newRegistrationFileCount,
+                $maxFileColumn,
+                'production_registration_documents',
+                'ไฟล์ทะเบียนผลิต'
+            );
+            $this->ensureProductionFileLimit(
+                $import,
+                self::DOCUMENT_TYPE_PRODUCTION_APPROVAL,
+                $newApprovalFileCount,
+                $maxFileColumn,
+                'production_approval_documents',
+                'ไฟล์ใบอนุญาตผลิต'
+            );
+
             $dataToUpdate = $validatedData;
+            unset(
+                $dataToUpdate['additional_document'],
+                $dataToUpdate['production_registration_documents'],
+                $dataToUpdate['production_approval_documents']
+            );
             // กำหนดค่าสำหรับ Checkbox หรือค่า default
             $dataToUpdate['new_or_old'] = $request->has('new_or_old') ? true : false;
             $dataToUpdate['is_active'] = $request->has('is_active') ? true : false;
@@ -286,13 +384,28 @@ class ProductionRegistrationController extends Controller
                 $dataToUpdate['image'] = $imagePath;
             }
 
-            if ($request->hasFile('document')) {
-                // ลบเอกสารเก่า (ถ้ามี)
-                if ($import->document && \Storage::disk('public')->exists($import->document)) {
-                    \Storage::disk('public')->delete($import->document);
+            if ($request->hasFile('additional_document')) {
+                foreach ($request->file('additional_document') as $additionalDocument) {
+                    $uploadedFile = $this->storeProductionRegistrationFile($import, $additionalDocument, self::DOCUMENT_TYPE_PRODUCTION_REGISTRATION);
+                    $dataToUpdate['additional_document'] = $uploadedFile->file_path;
+                    $dataToUpdate['document'] = $uploadedFile->original_name;
                 }
-                $documentPath = $request->file('document')->store('production_documents', 'public');
-                $dataToUpdate['document'] = $documentPath;
+            }
+
+            if ($request->hasFile('production_registration_documents')) {
+                foreach ($request->file('production_registration_documents') as $additionalDocument) {
+                    $uploadedFile = $this->storeProductionRegistrationFile($import, $additionalDocument, self::DOCUMENT_TYPE_PRODUCTION_REGISTRATION);
+                    $dataToUpdate['additional_document'] = $uploadedFile->file_path;
+                    $dataToUpdate['document'] = $uploadedFile->original_name;
+                }
+            }
+
+            if ($request->hasFile('production_approval_documents')) {
+                foreach ($request->file('production_approval_documents') as $additionalDocument) {
+                    $uploadedFile = $this->storeProductionRegistrationFile($import, $additionalDocument, self::DOCUMENT_TYPE_PRODUCTION_APPROVAL);
+                    $dataToUpdate['additional_document'] = $uploadedFile->file_path;
+                    $dataToUpdate['document'] = $uploadedFile->original_name;
+                }
             }
 
             // 3. อัปเดต Record ในฐานข้อมูล
@@ -301,6 +414,8 @@ class ProductionRegistrationController extends Controller
             // 4. ส่งกลับ Response หรือ Redirect ไปยังหน้าอื่น
             // return redirect()->route('production-registrations.index')->with('success', 'แก้ไขข้อมูลการขึ้นทะเบียนผลิตเรียบร้อยแล้ว!');
             return redirect()->back()->with('success', 'บันทึกข้อมูลสำเร็จ');
+        } catch (ValidationException $e) {
+            return redirect()->back()->withErrors($e->errors())->withInput();
         } catch (\Exception $e) {
             \Log::error("Error update product: " . $e->getMessage(), [
                 'trace' => $e->getTraceAsString(),
@@ -361,5 +476,100 @@ class ProductionRegistrationController extends Controller
             return sprintf('%04d-%02d-%02d', $yyyy, $mm, $dd);
         }
         return $value; // ปล่อยผ่านถ้าเป็น yyyy-mm-dd อยู่แล้ว
+    }
+    private function maxFileColumn(): int
+    {
+        $value = env('MAX_FILE_COLUM', env('MAX_FILE_COLUMN', 3));
+
+        return max(1, (int) $value);
+    }
+
+    private function uploadedFileCount(Request $request, string $inputName): int
+    {
+        if (!$request->hasFile($inputName)) {
+            return 0;
+        }
+
+        $files = $request->file($inputName);
+
+        return is_array($files) ? count($files) : 1;
+    }
+
+    private function ensureProductionFileLimit(
+        ProductionRegistration $productionRegistration,
+        string $documentTypeCode,
+        int $newFileCount,
+        int $maxFileColumn,
+        string $inputName,
+        string $label
+    ): void {
+        if ($newFileCount <= 0) {
+            return;
+        }
+
+        $existingFileCount = $this->existingProductionFileCount($productionRegistration, $documentTypeCode);
+
+        if (($existingFileCount + $newFileCount) <= $maxFileColumn) {
+            return;
+        }
+
+        $remaining = max(0, $maxFileColumn - $existingFileCount);
+
+        throw ValidationException::withMessages([
+            $inputName => 'อัปโหลด' . $label . 'ได้สูงสุด ' . $maxFileColumn . ' ไฟล์ ตอนนี้มีอยู่แล้ว '
+                . $existingFileCount . ' ไฟล์ สามารถเพิ่มได้อีก ' . $remaining . ' ไฟล์',
+        ]);
+    }
+
+    private function existingProductionFileCount(ProductionRegistration $productionRegistration, string $documentTypeCode): int
+    {
+        $query = $productionRegistration->files();
+
+        if ($documentTypeCode === self::DOCUMENT_TYPE_PRODUCTION_REGISTRATION) {
+            return (int) $query
+                ->where(function ($q) {
+                    $q->whereNull('document_type_code')
+                        ->orWhere('document_type_code', '<>', self::DOCUMENT_TYPE_PRODUCTION_APPROVAL);
+                })
+                ->count();
+        }
+
+        return (int) $query->where('document_type_code', $documentTypeCode)->count();
+    }
+
+    private function storeProductionRegistrationFile(ProductionRegistration $productionRegistration, $file, ?string $documentTypeCode = null): ProductionRegistrationFile
+    {
+        $path = $file->store('production_additional_documents', 'public');
+
+        return $productionRegistration->files()->create([
+            'document_type_code' => $documentTypeCode ?: self::DOCUMENT_TYPE_PRODUCTION_REGISTRATION,
+            'file_path' => $path,
+            'original_name' => $file->getClientOriginalName(),
+            'stored_name' => basename($path),
+            'file_extension' => $file->getClientOriginalExtension(),
+            'mime_type' => $file->getClientMimeType(),
+            'file_size' => $file->getSize(),
+            'created_by' => Auth::id(),
+            'uploaded_by' => Auth::id(),
+            'uploaded_at' => now(),
+        ]);
+    }
+
+    private function serveProductionRegistrationFile(ProductionRegistrationFile $file)
+    {
+        $disk = Storage::disk('public');
+
+        abort_unless($disk->exists($file->file_path), 404);
+
+        $fileName = $file->original_name ?: basename($file->file_path);
+        $fallbackFileName = preg_replace('/[^A-Za-z0-9._-]/', '_', basename($fileName)) ?: 'document.pdf';
+        $encodedFileName = rawurlencode($fileName);
+
+        return response()->file($disk->path($file->file_path), [
+            'Content-Type' => $file->mime_type ?: ($disk->mimeType($file->file_path) ?: 'application/pdf'),
+            'Content-Disposition' => 'inline; filename="' . $fallbackFileName . '"; filename*=UTF-8\'\'' . $encodedFileName,
+            'X-Content-Type-Options' => 'nosniff',
+            'Cache-Control' => 'private, no-store, no-cache, must-revalidate',
+        ]);
     }
 }

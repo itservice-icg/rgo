@@ -171,7 +171,7 @@
                                             if ($statusText == 'หมดอายุ') {
                                                 $statusClass =
                                                     'inline-block rounded-full px-3 py-1 font-semibold text-white bg-red-500';
-                                            } elseif ($statusText == 'ใกล้หมดอายุ') {
+                                            } elseif ($statusText == 'ใกล้หมด') {
                                                 $statusClass =
                                                     'inline-block rounded-full px-3 py-1 font-semibold text-gray-600 bg-yellow-300';
                                             } else {

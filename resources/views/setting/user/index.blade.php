@@ -24,11 +24,13 @@
                         <table class="min-w-full bg-white">
                             <thead>
                                 <tr class="bg-indigo-600 text-white text-left">
-                                    <th class="py-4 px-6 rounded-tl-2xl">ชื่อผู้ใช้งาน</th>
-                                    {{-- <th class="py-3 px-6">ชื่อผู้ใช้งาน</th> --}}
-                                    <th class="py-3 px-6">อีเมล์เข้าสู่ระบบ</th>
-                                    <th class="py-3 px-6">สิทธิ์</th>
-                                    <th class="py-3 px-6 rounded-tr-2xl text-right">การดำเนินการ</th>
+                                    <th class="py-3 px-4 rounded-tl-2xl">ชื่อผู้ใช้งาน</th>
+                                    {{-- <th class="py-3 px-4">ชื่อผู้ใช้งาน</th> --}}
+                                    <th class="py-3 px-4">อีเมล์เข้าสู่ระบบ</th>
+                                    <th class="py-3 px-3 sm:px-4 w-64">สิทธิ์</th>
+                                    <th class="py-3 px-4">ล็อกอินล่าสุด</th>
+                                    <th class="py-3 px-4">สถานะใช้งาน</th>
+                                    <th class="py-3 px-4 rounded-tr-2xl text-right">การดำเนินการ</th>
                                 </tr>
                             </thead>
                             <tbody class="text-gray-700 text-sm font-light">
@@ -56,26 +58,47 @@
                                             $department = $departments[$parts[1] ?? ''] ?? ($parts[1] ?? '');
                                             return trim("$position $department");
                                         }
+
                                     @endphp
                                     @foreach ($users as $user)
                                         <tr class="border-b hover:bg-indigo-50 transition">
-                                            <td class="py-4 px-6 whitespace-nowrap">
+                                            <td class="py-3 px-4 whitespace-nowrap">
                                                 <span class="font-semibold">{{ $user->name }}</span>
                                             </td>
-                                            <td class="py-4 px-6 whitespace-nowrap">
+                                            <td class="py-3 px-4 whitespace-nowrap">
                                                 <span class="font-semibold">{{ $user->email }}</span>
                                             </td>
-                                            <td class="py-4 px-6">
-                                                <div class="flex flex-wrap gap-2">
+                                            <td class="py-3 px-3 sm:px-4 w-64">
+                                                <div class="flex flex-wrap gap-1.5 sm:gap-2 max-w-xs">
                                                     @foreach ($user->roles as $role)
                                                         <span
-                                                            class="inline-block bg-gray-500 text-white text-xs font-bold px-2 py-1 rounded-full">
+                                                            class="inline-block max-w-full bg-gray-500 text-white text-xs font-bold px-2 py-1 rounded-full whitespace-normal break-words leading-snug">
                                                             {{ translateRoleName($role->name) }}
                                                         </span>
                                                     @endforeach
                                                 </div>
                                             </td>
-                                            <td class="py-4 px-6 text-right">
+                                             <td class="py-3 px-4 whitespace-nowrap">
+                                                <span class="font-semibold">
+                                                    {{ $user->last_login_at ? $user->last_login_at->format('d/m/Y H:i') : '-' }}
+                                                </span>
+                                            </td>
+                                             <td class="py-3 px-4 whitespace-nowrap">
+                                                @if ($user->last_login_at)
+                                                    @php
+                                                        $daysSinceLastLogin = $user->last_login_at->diffInDays(now());
+                                                    @endphp
+                                                    <span class="font-semibold {{ $daysSinceLastLogin > 7 ? 'text-yellow-600' : 'text-green-600' }}">
+                                                        {{ $daysSinceLastLogin > 7 ? 'ไม่ได้ใช้งานเกิน 7 วัน' : 'ใช้งานล่าสุด' }}
+                                                    </span>
+                                                    <div class="text-xs text-gray-500">
+                                                        ผ่านมา {{ $daysSinceLastLogin }} วัน
+                                                    </div>
+                                                @else
+                                                    <span class="font-semibold text-gray-400">-</span>
+                                                @endif
+                                            </td>
+                                            <td class="py-3 px-4 text-right">
                                                 <div class="flex items-center justify-end gap-2">
                                                     @can('User update')
                                                         <a href="{{ route('admin.users.edit', $user->id) }}"

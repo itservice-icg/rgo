@@ -4,7 +4,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>ระบบทะเบียนออนไลน์ (RGO)</title>
+    <title>ทะเบียนออนไลน์ (RGO)</title>
     <link rel="icon" type="image/png" href="{{ asset('images/logo2.png') }}">
     <script src="https://cdn.tailwindcss.com"></script>
     <link href="https://fonts.googleapis.com/css2?family=Sarabun:wght@400;700&display=swap" rel="stylesheet">
@@ -162,7 +162,7 @@
         <img alt="Logo" class="mb-10 h-48 w-48 md:h-56 md:w-56" src="{{ asset('images/logo2.png') }}" />
 
 
-        <h1 class="text-3xl font-bold text-gray-800 mb-8">ระบบทะเบียนออนไลน์</h1>
+        <h1 class="text-3xl font-bold text-gray-800 mb-8">ทะเบียนออนไลน์</h1>
 
         <div class="bg-gray-200 shadow-md rounded-2xl px-8 py-8 w-80 md:w-96">
             <h2 class="text-2xl font-semibold text-gray-700 text-center mb-6">เข้าสู่ระบบ</h2>
@@ -192,7 +192,7 @@
                 <button type="submit"
                     class="w-full bg-green-600 hover:bg-green-700 text-white font-semibold py-3 rounded-xl shadow-md transition duration-300 flex items-center justify-center space-x-2">
                     <span>เข้าสู่ระบบ</span>
-                    <i class="fas fa-arrow-right"></i>
+                    <!-- <i class="fas fa-arrow-right"></i> -->
                 </button>
             </form>
         </div>

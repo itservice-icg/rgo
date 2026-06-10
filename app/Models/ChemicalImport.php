@@ -46,6 +46,7 @@ class ChemicalImport extends Model
         'is_deleted',
         'image',
         'document',
+        'additional_document',
         'progress',
         'sub_progress',
         'created_by',
@@ -76,5 +77,10 @@ class ChemicalImport extends Model
     public function distributorCompany()
     {
         return $this->belongsTo(Company::class, 'distributor'); // 'store_company_1' is the foreign key
+    }
+
+    public function files()
+    {
+        return $this->hasMany(ChemicalImportFile::class, 'chemical_import_id')->latest('id');
     }
 }

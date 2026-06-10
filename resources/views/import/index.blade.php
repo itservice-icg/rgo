@@ -1,3 +1,25 @@
+<style>
+    nav[aria-label="Pagination Navigation"] .sm\:hidden > a,
+    nav[aria-label="Pagination Navigation"] .sm\:hidden > span {
+        font-size: 0 !important;
+        border-radius: 10px;
+        padding: 8px 16px;
+    }
+
+    nav[aria-label="Pagination Navigation"] .sm\:hidden > a:first-child::after,
+    nav[aria-label="Pagination Navigation"] .sm\:hidden > span:first-child::after {
+        content: "« ย้อนกลับ";
+        font-size: 14px;
+        font-weight: 600;
+    }
+
+    nav[aria-label="Pagination Navigation"] .sm\:hidden > a:last-child::after,
+    nav[aria-label="Pagination Navigation"] .sm\:hidden > span:last-child::after {
+        content: "ถัดไป »";
+        font-size: 14px;
+        font-weight: 600;
+    }
+</style>
 <x-app-layout>
     <main class="flex-1 overflow-x-hidden overflow-y-auto">
         <div class="container mx-auto px-6 py-6">
@@ -15,7 +37,7 @@
             </h1>
 
             {{-- สรุปสถานะทะเบียน --}}
-            <div class="flex flex-row justify-around mb-10 space-x-4">
+            <!-- <div class="flex flex-row justify-around mb-10 space-x-4">
                 {{-- ทั้งหมด --}}
                 <a href="{{ route('import.index', array_merge(request()->except('status_filter', 'page'), ['page' => 1])) }}"
                     class="group block h-full bg-gradient-to-br from-blue-200 to-blue-100 p-4 rounded-3xl text-center border-2 border-blue-400 hover:scale-105 transition-all duration-300">
@@ -65,11 +87,83 @@
                     <p class="text-2xl font-bold text-red-600">{{ $expiredCount ?? 0 }}</p>
                 </a>
             </div>
-            <div class="flex flex-col sm:flex-row justify-between items-center mx-3 mb-2">
+             -->
+            <div class="grid grid-cols-3 gap-2 mb-4">
+
+    {{-- ทั้งหมด --}}
+    <a href="{{ route('import.index', array_merge(request()->except('status_filter', 'page'), ['page' => 1])) }}"
+        class="rounded-2xl border border-blue-200 bg-blue-50 px-2 py-3 text-center
+               active:scale-95 transition
+               {{ !request('status_filter') ? 'ring-2 ring-blue-300 bg-blue-100' : '' }}">
+
+        <div class="mx-auto mb-1 flex h-8 w-8 items-center justify-center rounded-full bg-blue-200" style="width: 60px; height: 60px;">
+            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"  style="width: 50px!important; height: 50px!important;"
+                stroke-width="1.5" stroke="currentColor" class="h-4 w-4 text-blue-700">
+                <path stroke-linecap="round" stroke-linejoin="round"
+                    d="M9 12h3.75M9 15h3.75M9 18h3.75m3 .75H18a2.25 2.25 0 0 0 2.25-2.25V6.108c0-1.135-.845-2.098-1.976-2.192a48.424 48.424 0 0 0-1.123-.08m-5.801 0c-.065.21-.1.433-.1.664 0 .414.336.75.75.75h4.5a.75.75 0 0 0 .75-.75 2.25 2.25 0 0 0-.1-.664m-5.8 0A2.251 2.251 0 0 1 13.5 2.25H15c1.012 0 1.867.668 2.15 1.586m-5.8 0c-.376.023-.75.05-1.124.08C9.095 4.01 8.25 4.973 8.25 6.108V8.25m0 0H4.875c-.621 0-1.125.504-1.125 1.125v11.25c0 .621.504 1.125 1.125 1.125h9.75c.621 0 1.125-.504 1.125-1.125V9.375c0-.621-.504-1.125-1.125-1.125H8.25Z" />
+            </svg>
+        </div>
+
+        <div class="text-2xl font-semibold leading-tight text-blue-700">
+            ทั้งหมด
+        </div>
+
+        <div class="mt-0.5 text-4xl font-extrabold leading-none text-blue-700">
+            {{ $total ?? 0 }}
+        </div>
+    </a>
+
+    {{-- ใกล้หมดอายุ --}}
+    <a href="{{ route('import.index', array_merge(request()->except('status_filter', 'page'), ['status_filter' => 'soon_expired', 'page' => 1])) }}"
+        class="rounded-2xl border border-yellow-200 bg-yellow-50 px-2 py-3 text-center
+               active:scale-95 transition
+               {{ request('status_filter') == 'soon_expired' ? 'ring-2 ring-yellow-300 bg-yellow-100' : '' }}">
+
+        <div class="mx-auto mb-1 flex h-8 w-8 items-center justify-center rounded-full bg-yellow-200" style="width: 60px; height: 60px;">
+            <svg class="h-4 w-4 text-yellow-700" fill="none" stroke="currentColor" stroke-width="2" style="width: 50px!important; height: 50px!important;"
+                viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" d="M12 8v4l3 3" />
+                <circle cx="12" cy="12" r="10" />
+            </svg>
+        </div>
+
+        <div class="text-2xl font-semibold leading-tight text-yellow-700">
+            ใกล้หมดอายุ
+        </div>
+
+        <div class="mt-0.5 text-4xl font-extrabold leading-none text-yellow-700">
+            {{ $soonCount ?? 0 }}
+        </div>
+    </a>
+
+    {{-- หมดอายุ --}}
+    <a href="{{ route('import.index', array_merge(request()->except('status_filter', 'page'), ['status_filter' => 'expired', 'page' => 1])) }}"
+        class="rounded-2xl border border-red-200 bg-red-50 px-2 py-3 text-center
+               active:scale-95 transition
+               {{ request('status_filter') == 'expired' ? 'ring-2 ring-red-300 bg-red-100' : '' }}">
+
+        <div class="mx-auto mb-1 flex h-8 w-8 items-center justify-center rounded-full bg-red-200" style="width: 60px; height: 60px;">
+            <svg class="h-4 w-4 text-red-700" fill="none" stroke="currentColor" stroke-width="2" style="width: 50px!important; height: 50px!important;"
+                viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" d="M12 8v4l3 3" />
+                <circle cx="12" cy="12" r="10" />
+            </svg>
+        </div>
+
+        <div class="text-2xl font-semibold leading-tight text-red-700">
+            หมดอายุ
+        </div>
+
+        <div class="mt-0.5 text-4xl font-extrabold leading-none text-red-700">
+            {{ $expiredCount ?? 0 }}
+        </div>
+    </a>
+
+</div>
+            <div class="hidden lg:block flex flex-col sm:flex-row justify-between items-center mx-3 mb-2" >
                 {{-- <form action="{{ route('import.index') }}" method="GET" class="flex items-center gap-2 mb-2"> --}}
-                <form id="filterForm" action="{{ route('import.index') }}" method="GET"
-                    class="flex items-center gap-2 mb-2">
-                    <div class="relative flex-grow min-w-[280px]">
+                <form id="filterForm" action="{{ route('import.index') }}" method="GET" class="flex items-center gap-2 mb-2">
+                    <div class="relative flex-grow min-w-[280px]" >
                         <label for="search_query" class="mx-3 text-base block text-gray-700 mb-1 mt-3">ค้นหา</label>
                         <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none mt-9">
                             <svg class="w-5 h-5 text-gray-400" fill="none" stroke="currentColor" stroke-width="2"
@@ -80,7 +174,7 @@
                         </div>
                         <input type="text" id="search_query" name="search"
                             placeholder="ชื่อวัตถุอันตราย /เลขที่ทะเบียน" value="{{ request('search') }}"
-                            class="pl-10 pr-4 py-2 w-[500px] rounded-lg border border-gray-300 focus:outline-none focus:ring-2 focus:ring-purple-600 transition duration-200 ease-in-out text-gray-700 shadow-sm" />
+                            class="pl-10 pr-4 py-2 w-[500px] rounded-lg border border-gray-300 focus:outline-none focus:ring-2 focus:ring-purple-600 transition duration-200 ease-in-out text-gray-700 shadow-sm" style="width:100%" />
                         {{-- class="pl-10 pr-4 py-2 w-96 rounded-lg border border-gray-300 focus:outline-none focus:ring-2 focus:ring-purple-600 transition duration-200 ease-in-out text-gray-700 shadow-sm" /> --}}
                     </div>
                     {{-- วันที่เริ่ม --}}
@@ -136,42 +230,164 @@
                     </a>
                 @endcan --}}
             </div>
+<div class="lg:hidden ">
+    <form id="filterForm"
+        action="{{ route('import.index') }}"
+        method="GET"
+        class="bg-white border border-gray-100 rounded-2xl shadow-sm p-4">
 
-            <div class="bg-white rounded-2xl overflow-hidden border border-gray-200">
-                <div class="overflow-x-auto">
-                    <table class="min-w-full bg-white">
+        <div class="grid grid-cols-1 lg:grid-cols-[1.5fr_0.8fr_0.8fr_auto] gap-3 lg:items-end">
+
+            {{-- ค้นหา --}}
+            <div class="min-w-0">
+                <label for="search_query" class="block text-sm font-semibold text-gray-700 mb-1">
+                    ค้นหา
+                </label>
+
+                <div class="relative">
+                    <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                        <svg class="w-5 h-5 text-gray-400" fill="none" stroke="currentColor" stroke-width="2"
+                            viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round"
+                                d="m21 21-5.197-5.197m0 0A7.5 7.5 0 1 0 5.196 5.196a7.5 7.5 0 0 0 10.607 10.607Z" />
+                        </svg>
+                    </div>
+
+                    <input type="text"
+                        id="search_query"
+                        name="search"
+                        placeholder="ชื่อวัตถุอันตราย / เลขที่ทะเบียน"
+                        value="{{ request('search') }}"
+                        class="w-full pl-10 pr-4 py-3 rounded-xl border border-gray-300 
+                               focus:outline-none focus:ring-2 focus:ring-blue-500 
+                               text-gray-700 shadow-sm" />
+                </div>
+            </div>
+
+            {{-- วันที่เริ่ม --}}
+            <div class="min-w-0">
+                <label for="expiry_date_from" class="block text-sm font-semibold text-gray-700 mb-1">
+                    วันที่เริ่ม
+                </label>
+
+                <input id="expiry_date_from"
+                    class="date-th w-full px-4 py-3 border border-gray-300 rounded-xl 
+                           focus:outline-none focus:ring-2 focus:ring-blue-500 
+                           text-gray-700 shadow-sm"
+                    type="text"
+                    name="expiry_date_from"
+                    value="{{ request('expiry_date_from') }}"
+                    placeholder="วว/ดด/ปปปป"
+                    autocomplete="off"
+                    autocorrect="off"
+                    autocapitalize="off"
+                    spellcheck="false" />
+            </div>
+
+            {{-- วันที่สิ้นสุด --}}
+            <div class="min-w-0">
+                <label for="expiry_date_to" class="block text-sm font-semibold text-gray-700 mb-1">
+                    วันที่สิ้นสุด
+                </label>
+
+                <input id="expiry_date_to"
+                    class="date-th w-full px-4 py-3 border border-gray-300 rounded-xl 
+                           focus:outline-none focus:ring-2 focus:ring-blue-500 
+                           text-gray-700 shadow-sm"
+                    type="text"
+                    name="expiry_date_to"
+                    value="{{ request('expiry_date_to') }}"
+                    placeholder="วว/ดด/ปปปป"
+                    autocomplete="off"
+                    autocorrect="off"
+                    autocapitalize="off"
+                    spellcheck="false" />
+            </div>
+
+            {{-- ปุ่ม --}}
+            <div class="grid grid-cols-2 lg:flex gap-2 lg:min-w-max">
+
+                <button type="submit"
+                    class="w-full lg:w-auto inline-flex items-center justify-center gap-2 
+                           bg-blue-600 hover:bg-blue-700 text-white font-semibold 
+                           px-5 py-3 rounded-xl shadow-sm active:scale-95 transition">
+                    <svg class="w-5 h-5" fill="none" stroke="currentColor"
+                        stroke-width="2" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round"
+                            d="m21 21-5.197-5.197m0 0A7.5 7.5 0 1 0 5.196 5.196a7.5 7.5 0 0 0 10.607 10.607Z" />
+                    </svg>
+                    ค้นหา
+                </button>
+
+                @if (request('search') || request('expiry_date_from') || request('expiry_date_to'))
+                    <a href="{{ route('import.index') }}"
+                        class="w-full lg:w-auto inline-flex items-center justify-center gap-2 
+                               bg-gray-100 hover:bg-gray-200 text-gray-700 font-semibold 
+                               px-5 py-3 rounded-xl border border-gray-200 shadow-sm 
+                               active:scale-95 transition">
+                        <svg class="w-5 h-5" fill="none" stroke="currentColor"
+                            stroke-width="2" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round"
+                                d="M6 18 18 6M6 6l12 12" />
+                        </svg>
+                        ล้าง
+                    </a>
+                @else
+                    <div class="hidden lg:block"></div>
+                @endif
+
+            </div>
+
+        </div>
+    </form>
+</div>
+            
+            {{-- Desktop Table --}}
+            <div class="hidden lg:block bg-white rounded-2xl overflow-hidden border border-gray-200 ">
+                <div class="overflow-x-auto ">
+                    <table class="min-w-[1180px] table-fixed bg-white" style="width:100%">
+                        <colgroup>
+                            <col class="w-20">
+                            <col class="w-64">
+                            <col class="w-64">
+                            <col class="w-64">
+                            <col class="w-40">
+                            <col class="w-36">
+                            <col class="w-36">
+                            <col class="w-44">
+                        </colgroup>
                         <thead>
                             <tr class="bg-indigo-600 text-white text-left">
-                                <th class="py-4 px-4 rounded-tl-2xl">ลำดับ</th>
+                                <th class="py-4 px-4 rounded-tl-2xl text-center">ลำดับ</th>
                                 <th class="py-4 px-4">ชื่อวัตถุอันตราย (ไทย)</th>
                                 <th class="py-4 px-4">ชื่อวัตถุอันตราย (อังกฤษ)</th>
-                                <th class="py-4 px-4 text-center">ผู้นำเข้า</th>
+                                <th class="py-4 px-4 ">ผู้นำเข้า</th>
                                 {{-- <th class="py-4 px-4 text-center">ตัวย่อ</th> --}}
-                                <th class="py-4 px-8">เลขที่ทะเบียน</th>
-                                <th class="py-4 px-8">วันหมดอายุ</th>
+                                <th class="py-4 px-4 text-center">เลขที่ทะเบียน</th>
+                                <th class="py-4 px-4 text-center">วันหมดอายุ</th>
                                 <th class="py-4 px-4 text-center">สถานะ</th>
-                                <th class="py-4 px-8 rounded-tr-2xl text-center">การดำเนินการ</th>
+                                <th class="py-4 px-4 rounded-tr-2xl text-center">การดำเนินการ</th>
                             </tr>
                         </thead>
                         <tbody>
                             @can('Inregister read')
                                 @forelse ($imports as $index => $import)
                                     <tr class="border-b hover:bg-indigo-50 transition">
-                                        <td class="py-4 px-6 font-semibold text-gray-700">
+                                        <td class="py-4 px-4 font-semibold text-center text-gray-700">
                                             {{ $loop->iteration + ($imports->currentPage() - 1) * $imports->perPage() }}
                                         </td>
-                                        <td class="py-4 px-4">{{ $import->chemical_name_th }}</td>
-                                        <td class="py-4 px-4">{{ $import->chemical_name_en }}</td>
-                                        <td class="py-4 px-4">{{ $import->importerCompany->full_name ?? '' }}</td>
+                                        <td class="py-4 px-4 break-words">{{ $import->chemical_name_th }}</td>
+                                        <td class="py-4 px-4 break-words">{{ $import->chemical_name_en }}</td>
+                                        <td class="py-4 px-4 break-words">{{ $import->importerCompany->full_name ?? '' }}</td>
                                         {{-- <td class="py-4 px-4 text-center">{{ $import->importerCompany->name ?? '' }}</td> --}}
-                                        <td class="py-4 px-8">{{ $import->registration_number }}</td>
-                                        <td class="py-4 px-8">
+                                        <td class="py-4 px-4 text-center break-words">{{ $import->registration_number }}</td>
+                                        <td class="py-4 px-4 text-center whitespace-nowrap">
                                             @if ($import->expired_license_date)
                                                 {{ \Carbon\Carbon::parse($import->expired_license_date)->addYears(543)->format('d/m/Y') }}
                                             @endif
                                         </td>
                                         {{-- การตกแต่งสีสถานะ --}}
-                                        <td class="py-4 px-8">
+                                        <td class="py-4 px-4 text-center">
                                             @if ($import->expired_license_date)
                                                 @php
                                                     $statusClass = '';
@@ -179,13 +395,13 @@
 
                                                     if ($statusText == 'หมดอายุ') {
                                                         $statusClass =
-                                                            'inline-block rounded-full px-3 py-1 font-semibold text-white bg-red-500';
-                                                    } elseif ($statusText == 'ใกล้หมดอายุ') {
+                                                            'inline-flex w-24 justify-center rounded-full px-3 py-1 font-semibold text-white bg-red-500';
+                                                    } elseif ($statusText == 'ใกล้หมด') {
                                                         $statusClass =
-                                                            'inline-block rounded-full px-3 py-1 font-semibold text-gray-600 bg-yellow-300';
+                                                            'inline-flex w-24 justify-center rounded-full px-3 py-1 font-semibold text-gray-600 bg-yellow-300';
                                                     } else {
                                                         $statusClass =
-                                                            'inline-block rounded-full px-3 py-1 font-semibold text-white bg-green-500'; // สถานะปกติ เช่น 'ใช้งานอยู่'
+                                                            'inline-flex w-24 justify-center rounded-full px-3 py-1 font-semibold text-white bg-green-500'; // สถานะปกติ เช่น 'ใช้งานอยู่'
                                                     }
                                                 @endphp
                                                 <span class="{{ $statusClass }}">
@@ -194,7 +410,7 @@
                                             @endif
                                         </td>
                                         {{-- สิ้นสุดการตกแต่งสีสถานะ --}}
-                                        <td class="py-4 px-8 text-center">
+                                        <td class="py-4 px-4 text-center">
                                             <div class="flex items-center gap-3 justify-center">
                                                 @can('Inregister read')
                                                     <a href="{{ route('import.show', $import->id) }}"
@@ -253,12 +469,123 @@
                         </tbody>
                     </table>
                 </div>
+               
                 <div class="px-8 py-6 bg-white border-t border-gray-100 rounded-b-2xl">
                     {{-- {{ $imports->links() }} --}}
                     {{ $imports->appends(request()->query())->links() }}
                 </div>
             </div>
+{{-- Mobile Card List --}}
+<div class="lg:hidden space-y-4">
+    @can('Inregister read')
+        @forelse ($imports as $index => $import)
+            @php
+                $statusClass = '';
+                $statusText = $import->status;
 
+                if ($statusText == 'หมดอายุ') {
+                    $statusClass = 'bg-red-100 text-red-700 border border-red-200';
+                } elseif ($statusText == 'ใกล้หมด') {
+                    $statusClass = 'bg-yellow-100 text-yellow-700 border border-yellow-200';
+                } else {
+                    $statusClass = 'bg-green-100 text-green-700 border border-green-200';
+                }
+            @endphp
+
+            <div class="bg-white rounded-2xl shadow-sm border border-gray-100 p-4 active:scale-[0.99] transition">
+                {{-- Header --}}
+                <div class="flex items-start justify-between gap-3 mb-3">
+                    <div class="min-w-0">
+                        <div class="text-xs text-gray-400 mb-1">
+                            #{{ $loop->iteration + ($imports->currentPage() - 1) * $imports->perPage() }}
+                        </div>
+
+                        <h3 class="text-base font-bold text-gray-800 leading-snug line-clamp-2">
+                            {{ $import->chemical_name_th }}
+                        </h3>
+
+                        <p class="text-sm text-gray-500 mt-1 line-clamp-1">
+                            {{ $import->chemical_name_en }}
+                        </p>
+                    </div>
+
+                    @if ($import->expired_license_date)
+                        <span class="inline-flex w-24 shrink-0 justify-center rounded-full px-3 py-1 text-center text-xs font-bold {{ $statusClass }}">
+                            {{ $statusText }}
+                        </span>
+                    @endif
+                </div>
+
+                {{-- Info --}}
+                <div class="grid grid-cols-1 gap-2 text-sm">
+                    <div class="flex justify-between gap-3 border-t pt-3">
+                        <span class="text-gray-400">ผู้นำเข้า</span>
+                        <span class="text-gray-700 font-medium text-right">
+                            {{ $import->importerCompany->full_name ?? '-' }}
+                        </span>
+                    </div>
+
+                    <div class="flex justify-between gap-3">
+                        <span class="text-gray-400">เลขทะเบียน</span>
+                        <span class="text-gray-700 font-semibold text-right">
+                            {{ $import->registration_number ?: '-' }}
+                        </span>
+                    </div>
+
+                    <div class="flex justify-between gap-3">
+                        <span class="text-gray-400">วันหมดอายุ</span>
+                        <span class="text-gray-700 font-semibold text-right">
+                            @if ($import->expired_license_date)
+                                {{ \Carbon\Carbon::parse($import->expired_license_date)->addYears(543)->format('d/m/Y') }}
+                            @else
+                                -
+                            @endif
+                        </span>
+                    </div>
+                </div>
+
+                {{-- Actions --}}
+                <div class="grid grid-cols-3 gap-2 mt-4">
+                    @can('Inregister read')
+                        <a href="{{ route('import.show', $import->id) }}"
+                            class="flex items-center justify-center gap-1 rounded-xl bg-green-500 px-3 py-2.5 text-sm font-bold text-white active:scale-95 transition">
+                            ดู
+                        </a>
+                    @endcan
+
+                    @can('Inregister update')
+                        <a href="{{ route('import.edit', $import->id) }}"
+                            class="flex items-center justify-center gap-1 rounded-xl bg-yellow-500 px-3 py-2.5 text-sm font-bold text-white active:scale-95 transition">
+                            แก้ไข
+                        </a>
+                    @endcan
+
+                    @can('Inregister delete')
+                        <button onclick="confirmDelete({{ $import->id }})"
+                            class="flex items-center justify-center gap-1 rounded-xl bg-red-500 px-3 py-2.5 text-sm font-bold text-white active:scale-95 transition">
+                            ลบ
+                        </button>
+
+                        <form id="delete-form-{{ $import->id }}"
+                            action="{{ route('import.destroy', $import->id) }}"
+                            method="POST"
+                            style="display: none;">
+                            @csrf
+                            @method('delete')
+                        </form>
+                    @endcan
+                </div>
+            </div>
+        @empty
+            <div class="bg-white rounded-2xl border border-dashed border-gray-300 p-8 text-center">
+                <p class="text-gray-400 font-medium">ไม่มีข้อมูลทะเบียนนำเข้า</p>
+            </div>
+        @endforelse
+      <div class="px-3 sm:px-6 lg:px-8 py-4 sm:py-6 bg-white border-t border-gray-100 rounded-b-2xl">
+    {{ $imports->appends(request()->query())->onEachSide(1)->links() }}
+</div>
+    @endcan
+</div>
         </div>
     </main>
 

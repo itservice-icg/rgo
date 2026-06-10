@@ -110,7 +110,7 @@ class ChemicalRegistrationController extends Controller
             if ($expiryDate->isPast()) {
                 $product->status = 'หมดอายุ';
             } elseif ($expiryDate->diffInMonths($now) <= 6) {
-                $product->status = 'ใกล้หมดอายุ';
+                $product->status = 'ใกล้หมด';
             } else {
                 $product->status = 'ใช้งานอยู่';
             }
@@ -896,7 +896,7 @@ class ChemicalRegistrationController extends Controller
             if ($expiryDate <= $today) {
                 $product->status = 'หมดอายุ';
             } elseif ($expiryDate->diffInDays($now) <= 180) { // เปรียบเทียบเป็นวันสำหรับ 180 วัน
-                $product->status = 'ใกล้หมดอายุ';
+                $product->status = 'ใกล้หมด';
             } else {
                 $product->status = 'ใช้งานอยู่';
             }
