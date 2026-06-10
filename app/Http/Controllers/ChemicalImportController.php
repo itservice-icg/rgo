@@ -6,14 +6,22 @@ use Illuminate\Http\Request;
 use Maatwebsite\Excel\Facades\Excel;
 use App\Imports\ChemicalImportsImport; // อย่าลืม import Import Class ที่สร้างไว้
 use App\Models\ChemicalImport;
+use App\Models\ChemicalImportFile;
 use App\Models\Company;
+use App\Models\DocumentType;
 use Carbon\Carbon;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Schema;
+use Illuminate\Support\Facades\Storage;
+use Illuminate\Validation\ValidationException;
 use Log;
 
 
 class ChemicalImportController extends Controller
 {
+    private const DOCUMENT_TYPE_IMPORT_REGISTRATION = 'import_reg';
+    private const DOCUMENT_TYPE_IMPORT_APPROVAL = 'import_license';
+
     /**
      * Display a listing of the resource.
      *
@@ -21,20 +29,22 @@ class ChemicalImportController extends Controller
      */
     public function index(Request $request)
     {
+
         $query = ChemicalImport::query();
         $query->with('company');
 
-
-
-        // ส่วนของการค้นหา (search) ยังคงเดิม
+        // ส่วนของการค้นหา (search) - normalize input and compare without spaces, case-insensitive
         if ($request->filled('search')) {
-            $search = $request->input('search');
-            $query->where(function ($q) use ($search) {
-                $q->where('chemical_name_th', 'like', "%$search%")
-                    ->orWhere('chemical_name_en', 'like', "%$search%")
-                    ->orWhere('production_license_number', 'like', "%$search%")
-                    ->orWhereHas('company', function ($q2) use ($search) {
-                        $q2->where('full_name', 'like', "%$search%");
+            $rawSearch = (string) $request->input('search');
+            $normalized = mb_strtolower(preg_replace('/\s+/', '', $rawSearch));
+            $like = '%' . $normalized . '%';
+
+            $query->where(function ($q) use ($like) {
+                $q->whereRaw("REPLACE(LOWER(chemical_name_th), ' ', '') LIKE ?", [$like])
+                    ->orWhereRaw("REPLACE(LOWER(chemical_name_en), ' ', '') LIKE ?", [$like])
+                    ->orWhereRaw("REPLACE(LOWER(registration_number), ' ', '') LIKE ?", [$like])
+                    ->orWhereHas('company', function ($q2) use ($like) {
+                        $q2->whereRaw("REPLACE(LOWER(full_name), ' ', '') LIKE ?", [$like]);
                     });
             });
         }
@@ -79,7 +89,7 @@ class ChemicalImportController extends Controller
             if ($expiryDate->isPast()) {
                 $import->status = 'หมดอายุ';
             } elseif ($expiryDate->diffInMonths($now) <= 6) {
-                $import->status = 'ใกล้หมดอายุ';
+                $import->status = 'ใกล้หมด';
             } else {
                 $import->status = 'ใช้งานอยู่';
             }
@@ -139,11 +149,11 @@ class ChemicalImportController extends Controller
                 'production_license_expiry' => 'nullable|date',
                 'production_license_quantity' => 'nullable|string|max:255',
                 'possession_form_wo2' => 'nullable|string|max:255',
-                'possession_form_expiry' => 'nullable|date',
+                'possession_form_expiry' => 'nullable|string',
                 'packaging_size_details' => 'nullable|string|max:1000',
                 'registration_number_pass' => 'nullable|string|max:255',
                 'registration_expiry_date' => 'nullable|date',
-                'expired_at' => 'nullable|date',
+                'expired_at' => 'nullable|string',
                 'status_date' => 'nullable|string|max:255',
                 'remarks' => 'nullable|string|max:1000',
                 'image' => 'nullable|image|max:2048', // ตัวอย่าง: อนุญาตเฉพาะไฟล์ภาพ ขนาดไม่เกิน 2MB
@@ -181,7 +191,22 @@ class ChemicalImportController extends Controller
                 $dataToSave['document'] = $documentPath;
             }
 
-            ChemicalImport::create($dataToSave);
+            $chemicalImport = ChemicalImport::create($dataToSave);
+            if ($request->hasFile('document')) {
+                $document = $request->file('document');
+                $chemicalImport->files()->create([
+                    'document_type_code' => $this->defaultDocumentTypeCode(),
+                    'file_path' => $dataToSave['document'],
+                    'original_name' => $document->getClientOriginalName(),
+                    'stored_name' => basename($dataToSave['document']),
+                    'file_extension' => $document->getClientOriginalExtension(),
+                    'mime_type' => $document->getClientMimeType(),
+                    'file_size' => $document->getSize(),
+                    'created_by' => Auth::id(),
+                    'uploaded_by' => Auth::id(),
+                    'uploaded_at' => now(),
+                ]);
+            }
             return redirect()->back()->with('success', 'บันทึกข้อมูลสำเร็จ');
         } catch (ValidationException $e) {
             return redirect()->back()->withErrors($e->errors())->withInput();
@@ -202,6 +227,7 @@ class ChemicalImportController extends Controller
     public function show(ChemicalImport $import)
     {
 
+        $import->load('files');
         $product = $import;
         $companies = Company::all();
         return view('import.show', compact('product', 'companies'));
@@ -216,9 +242,72 @@ class ChemicalImportController extends Controller
      */
     public function edit(ChemicalImport $import)
     {
+        $import->load('files');
         $companies = Company::all();
         return view('import.edit', compact('import', 'companies'));
         // return view('import.edit', compact('import'));
+    }
+
+    public function additionalDocument(ChemicalImport $import)
+    {
+        $file = $import->files()->first();
+
+        if ($file) {
+            return $this->serveChemicalImportFile($file);
+        }
+
+        $filePath = $import->additional_document ?: $import->document;
+
+        abort_unless($filePath, 404);
+
+        $disk = Storage::disk('public');
+        $documentPath = $filePath;
+
+        if (!$disk->exists($documentPath) && $import->document && $disk->exists($import->document)) {
+            $documentPath = $import->document;
+        }
+
+        abort_unless($disk->exists($documentPath), 404);
+
+        $path = $disk->path($documentPath);
+        $fileName = $import->document ?: basename($documentPath);
+        $fallbackFileName = preg_replace('/[^A-Za-z0-9._-]/', '_', basename($fileName)) ?: 'document.pdf';
+        $encodedFileName = rawurlencode($fileName);
+
+        return response()->file($path, [
+            'Content-Type' => $disk->mimeType($documentPath) ?: 'application/pdf',
+            'Content-Disposition' => 'inline; filename="' . $fallbackFileName . '"; filename*=UTF-8\'\'' . $encodedFileName,
+            'X-Content-Type-Options' => 'nosniff',
+            'Cache-Control' => 'private, no-store, no-cache, must-revalidate',
+        ]);
+    }
+
+    public function file(ChemicalImport $import, ChemicalImportFile $file)
+    {
+        abort_unless((int) $file->chemical_import_id === (int) $import->id, 404);
+
+        return $this->serveChemicalImportFile($file);
+    }
+
+    public function destroyFile(ChemicalImport $import, ChemicalImportFile $file)
+    {
+        abort_unless((int) $file->chemical_import_id === (int) $import->id, 404);
+
+        if ($file->file_path && Storage::disk('public')->exists($file->file_path)) {
+            Storage::disk('public')->delete($file->file_path);
+        }
+
+        $file->forceDelete();
+
+        $latestFile = $import->files()->first();
+        $import->update([
+            'additional_document' => $latestFile?->file_path,
+            'document' => $latestFile?->original_name,
+        ]);
+
+        return redirect()->back()
+            ->with('success', 'ลบเอกสารสำเร็จ')
+            ->with('file_deleted', true);
     }
 
     /**
@@ -230,7 +319,31 @@ class ChemicalImportController extends Controller
      */
     public function update(Request $request, ChemicalImport $import)
     {
+            if (auth()->check()) {
+                $user = auth()->user();
+                $additionalDocument = $request->file('additional_document');
+
+                \Log::info('Current login import permissions', [
+                    'user_id' => $user->id,
+                    'import_id' => $import->id,
+                    'additional_document' => $additionalDocument ? $additionalDocument->getClientOriginalName() : null, // ตรวจสอบชื่อไฟล์ที่ส่งมาใน request
+                ]);
+            } else {
+                \Log::warning('No authenticated user found during update operation');
+            }
         try {
+            $maxFileColumn = $this->maxFileColumn();
+
+            $request->merge([
+                'expired_license_date'     => $this->convertDate($request->input('expired_license_date')), // <<== เพิ่มตรงนี้
+                'registration_expiry_date'  => $this->convertDate($request->input('registration_expiry_date')),
+                'production_license_expiry' => $this->convertDate($request->input('production_license_expiry')),
+                // 'possession_form_expiry'    => $this->convertDate($request->input('possession_form_expiry')),
+                'application_received_date' => $this->convertDate($request->input('application_received_date')),
+                // 'expired_at'                => $this->convertDate($request->input('expired_at')),
+                'date_submit_request'       => $this->convertDate($request->input('date_submit_request')),
+                'date_request_phase_3'      => $this->convertDate($request->input('date_request_phase_3')),
+            ]);
             // 1. Validation ข้อมูลจากฟอร์ม
             $validatedData = $request->validate([
                 'company_id' => 'nullable|exists:companies,id',
@@ -252,25 +365,64 @@ class ChemicalImportController extends Controller
                 'plant' => 'nullable|string|max:255',
                 'pests' => 'nullable|string|max:255',
                 'production_license_number' => 'nullable|string|max:255',
-                'production_license_expiry' => 'nullable|date',
+                'production_license_expiry' => 'nullable',
                 'production_license_quantity' => 'nullable|string|max:255',
                 'possession_form_wo2' => 'nullable|string|max:255',
-                'possession_form_expiry' => 'nullable|date',
+                'possession_form_expiry' => 'nullable|string',
                 'packaging_size_details' => 'nullable|string|max:1000',
                 'registration_number_pass' => 'nullable|string|max:255',
                 'registration_expiry_date' => 'nullable|date',
-                'expired_at' => 'nullable|date',
+                'expired_at' => 'nullable|string',
                 'status_date' => 'nullable|string|max:255',
                 'remarks' => 'nullable|string|max:1000',
                 'image' => 'nullable|image|max:2048', // optional: 'image' if you want to allow changing image
-                'document' => 'nullable|file|mimes:pdf,doc,docx|max:5120', // optional: 'file' if you want to allow changing document
+                'additional_document' => 'nullable|file|mimes:pdf,doc,docx|max:5120', // legacy single file input
+                'additional_documents' => 'nullable|array',
+                'additional_documents.*' => 'file|mimes:pdf,doc,docx|max:5120',
+                'import_registration_documents' => 'nullable|array|max:' . $maxFileColumn,
+                'import_registration_documents.*' => 'file|mimes:pdf,doc,docx|max:5120',
+                'import_approval_documents' => 'nullable|array|max:' . $maxFileColumn,
+                'import_approval_documents.*' => 'file|mimes:pdf,doc,docx|max:5120',
                 'progress' => 'nullable|numeric|min:0|max:100',
-                'sub_progress' => 'nullable|numeric|min:0|max:100',
+                'sub_progress' => 'nullable|numeric|min:0|max:100'
+                
+
                 // หมายเหตุ: สำหรับฟิลด์ที่ไม่จำเป็นต้องเปลี่ยนผ่านฟอร์ม (เช่น created_by, is_deleted) ไม่ต้องใส่ใน validation rules
+            ], [
+                'import_registration_documents.max' => 'อัปโหลดทะเบียนนำเข้าได้ไม่เกิน ' . $maxFileColumn . ' ไฟล์',
+                'import_approval_documents.max' => 'อัปโหลดใบอนุญาตนำเข้าได้ไม่เกิน ' . $maxFileColumn . ' ไฟล์',
             ]);
+
+            $newRegistrationFileCount = $this->uploadedFileCount($request, 'import_registration_documents')
+                + $this->uploadedFileCount($request, 'additional_documents')
+                + $this->uploadedFileCount($request, 'additional_document');
+            $newApprovalFileCount = $this->uploadedFileCount($request, 'import_approval_documents');
+
+            $this->ensureImportFileLimit(
+                $import,
+                self::DOCUMENT_TYPE_IMPORT_REGISTRATION,
+                $newRegistrationFileCount,
+                $maxFileColumn,
+                'import_registration_documents',
+                'ทะเบียนนำเข้า'
+            );
+            $this->ensureImportFileLimit(
+                $import,
+                self::DOCUMENT_TYPE_IMPORT_APPROVAL,
+                $newApprovalFileCount,
+                $maxFileColumn,
+                'import_approval_documents',
+                'ใบอนุญาตนำเข้า'
+            );
 
             // 2. Map ข้อมูลและกำหนดค่าเพิ่มเติม (คล้ายกับ Store แต่ไม่มี created_by)
             $dataToUpdate = $validatedData;
+            unset(
+                $dataToUpdate['additional_document'],
+                $dataToUpdate['additional_documents'],
+                $dataToUpdate['import_registration_documents'],
+                $dataToUpdate['import_approval_documents']
+            );
 
             // กำหนดค่าสำหรับ Checkbox หรือค่า default
             $dataToUpdate['new_or_old'] = $request->has('new_or_old') ? true : false;
@@ -290,20 +442,49 @@ class ChemicalImportController extends Controller
             // ถ้ามีการอัปโหลดไฟล์ใหม่ ให้ลบไฟล์เก่าก่อน (ถ้ามี)
             if ($request->hasFile('image')) {
                 // ลบรูปเก่า (ถ้ามีและไม่ใช่ default image)
-                if ($import->image && \Storage::disk('public')->exists($import->image)) {
-                    \Storage::disk('public')->delete($import->image);
+                if ($import->image && Storage::disk('public')->exists($import->image)) {
+                    Storage::disk('public')->delete($import->image);
                 }
                 $imagePath = $request->file('image')->store('production_images', 'public');
                 $dataToUpdate['image'] = $imagePath;
             }
 
-            if ($request->hasFile('document')) {
-                // ลบเอกสารเก่า (ถ้ามี)
-                if ($import->document && \Storage::disk('public')->exists($import->document)) {
-                    \Storage::disk('public')->delete($import->document);
+            $uploadedFileGroups = [
+                self::DOCUMENT_TYPE_IMPORT_REGISTRATION => [],
+                self::DOCUMENT_TYPE_IMPORT_APPROVAL => [],
+            ];
+
+            if ($request->hasFile('import_registration_documents')) {
+                $uploadedFileGroups[self::DOCUMENT_TYPE_IMPORT_REGISTRATION] = array_merge(
+                    $uploadedFileGroups[self::DOCUMENT_TYPE_IMPORT_REGISTRATION],
+                    $request->file('import_registration_documents')
+                );
+            }
+
+            if ($request->hasFile('import_approval_documents')) {
+                $uploadedFileGroups[self::DOCUMENT_TYPE_IMPORT_APPROVAL] = array_merge(
+                    $uploadedFileGroups[self::DOCUMENT_TYPE_IMPORT_APPROVAL],
+                    $request->file('import_approval_documents')
+                );
+            }
+
+            if ($request->hasFile('additional_documents')) {
+                $uploadedFileGroups[self::DOCUMENT_TYPE_IMPORT_REGISTRATION] = array_merge(
+                    $uploadedFileGroups[self::DOCUMENT_TYPE_IMPORT_REGISTRATION],
+                    $request->file('additional_documents')
+                );
+            }
+
+            if ($request->hasFile('additional_document')) {
+                $uploadedFileGroups[self::DOCUMENT_TYPE_IMPORT_REGISTRATION][] = $request->file('additional_document');
+            }
+
+            foreach ($uploadedFileGroups as $documentTypeCode => $uploadedFiles) {
+                foreach ($uploadedFiles as $additionalDocument) {
+                    $uploadedFile = $this->storeChemicalImportFile($import, $additionalDocument, $documentTypeCode);
+                    $dataToUpdate['additional_document'] = $uploadedFile->file_path;
+                    $dataToUpdate['document'] = $uploadedFile->original_name;
                 }
-                $documentPath = $request->file('document')->store('production_documents', 'public');
-                $dataToUpdate['document'] = $documentPath;
             }
 
             // 3. อัปเดต Record ในฐานข้อมูล
@@ -315,6 +496,11 @@ class ChemicalImportController extends Controller
         } catch (ValidationException $e) {
             return redirect()->back()->withErrors($e->errors())->withInput();
         } catch (\Exception $e) {
+            \Log::error("Error update product: " . $e->getMessage(), [
+                'trace' => $e->getTraceAsString(),
+                'request' => $request->all(), // ข้อมูลฟอร์มที่ส่งมา
+            ]);
+        
             return redirect()->back()->with('error', 'เกิดข้อผิดพลาดในการแก้ไขข้อมูล: ' . $e->getMessage())->withInput();
         }
     }
@@ -372,5 +558,126 @@ class ChemicalImportController extends Controller
 
 
         return back()->with('success', 'นำเข้าข้อมูลวัตถุอันตรายเรียบร้อยแล้ว!');
+    }
+
+    private function convertDate($value)
+    {
+        if (!$value) return null;
+        if (preg_match('#^\d{2}/\d{2}/\d{4}$#', $value)) {
+            [$dd, $mm, $yyyy] = explode('/', $value);
+            if ((int)$yyyy > 2400) $yyyy -= 543;
+            return sprintf('%04d-%02d-%02d', $yyyy, $mm, $dd);
+        }
+        return $value; // ปล่อยผ่านถ้าเป็น yyyy-mm-dd อยู่แล้ว
+    }
+
+    private function storeChemicalImportFile(ChemicalImport $import, $file, ?string $documentTypeCode = null): ChemicalImportFile
+    {
+        $path = $file->store('import_additional_documents', 'public');
+
+        return $import->files()->create([
+            'document_type_code' => $documentTypeCode ?: $this->defaultDocumentTypeCode(),
+            'file_path' => $path,
+            'original_name' => $file->getClientOriginalName(),
+            'stored_name' => basename($path),
+            'file_extension' => $file->getClientOriginalExtension(),
+            'mime_type' => $file->getClientMimeType(),
+            'file_size' => $file->getSize(),
+            'created_by' => Auth::id(),
+            'uploaded_by' => Auth::id(),
+            'uploaded_at' => now(),
+        ]);
+    }
+
+    private function maxFileColumn(): int
+    {
+        $value = env('MAX_FILE_COLUM', env('MAX_FILE_COLUMN', 3));
+
+        return max(1, (int) $value);
+    }
+
+    private function uploadedFileCount(Request $request, string $inputName): int
+    {
+        if (!$request->hasFile($inputName)) {
+            return 0;
+        }
+
+        $files = $request->file($inputName);
+
+        return is_array($files) ? count($files) : 1;
+    }
+
+    private function ensureImportFileLimit(
+        ChemicalImport $import,
+        string $documentTypeCode,
+        int $newFileCount,
+        int $maxFileColumn,
+        string $inputName,
+        string $label
+    ): void {
+        if ($newFileCount <= 0) {
+            return;
+        }
+
+        $existingFileCount = $this->existingImportFileCount($import, $documentTypeCode);
+
+        if (($existingFileCount + $newFileCount) <= $maxFileColumn) {
+            return;
+        }
+
+        $remaining = max(0, $maxFileColumn - $existingFileCount);
+
+        throw ValidationException::withMessages([
+            $inputName => 'อัปโหลด' . $label . 'ได้สูงสุด ' . $maxFileColumn . ' ไฟล์ ตอนนี้มีอยู่แล้ว '
+                . $existingFileCount . ' ไฟล์ สามารถเพิ่มได้อีก ' . $remaining . ' ไฟล์',
+        ]);
+    }
+
+    private function existingImportFileCount(ChemicalImport $import, string $documentTypeCode): int
+    {
+        $query = $import->files();
+
+        if ($documentTypeCode === self::DOCUMENT_TYPE_IMPORT_REGISTRATION) {
+            return (int) $query
+                ->where(function ($q) {
+                    $q->whereNull('document_type_code')
+                        ->orWhere('document_type_code', '<>', self::DOCUMENT_TYPE_IMPORT_APPROVAL);
+                })
+                ->count();
+        }
+
+        return (int) $query->where('document_type_code', $documentTypeCode)->count();
+    }
+
+    private function defaultDocumentTypeCode(): string
+    {
+        if (!Schema::hasTable('document_types')) {
+            return self::DOCUMENT_TYPE_IMPORT_REGISTRATION;
+        }
+
+        return DocumentType::where('is_active', true)
+            ->where('module', 'chemical_imports')
+            ->orderBy('sort_order')
+            ->orderBy('id')
+            ->value('code')
+            ?: self::DOCUMENT_TYPE_IMPORT_REGISTRATION;
+    }
+
+    private function serveChemicalImportFile(ChemicalImportFile $file)
+    {
+        $disk = Storage::disk('public');
+
+        abort_unless($disk->exists($file->file_path), 404);
+
+        $fileName = $file->original_name ?: basename($file->file_path);
+        $fallbackFileName = preg_replace('/[^A-Za-z0-9._-]/', '_', basename($fileName)) ?: 'document.pdf';
+        $encodedFileName = rawurlencode($fileName);
+
+        return response()->file($disk->path($file->file_path), [
+            'Content-Type' => $file->mime_type ?: ($disk->mimeType($file->file_path) ?: 'application/pdf'),
+            'Content-Disposition' => 'inline; filename="' . $fallbackFileName . '"; filename*=UTF-8\'\'' . $encodedFileName,
+            'X-Content-Type-Options' => 'nosniff',
+            'Cache-Control' => 'private, no-store, no-cache, must-revalidate',
+        ]);
     }
 }

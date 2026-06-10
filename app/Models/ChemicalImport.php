@@ -46,18 +46,17 @@ class ChemicalImport extends Model
         'is_deleted',
         'image',
         'document',
+        'additional_document',
         'progress',
         'sub_progress',
         'created_by',
         'updated_by',
+        'created_at',      
     ];
 
     protected $casts = [
         'expired_license_date' => 'date',
-        'production_license_expiry' => 'date',
-        'possession_form_expiry' => 'date',
-        'registration_expiry_date' => 'date',
-        'expired_at' => 'date',
+        // 'production_license_expiry' => 'date',
         'new_or_old' => 'boolean',
         'is_active' => 'boolean',
         'is_deleted' => 'boolean',
@@ -78,5 +77,10 @@ class ChemicalImport extends Model
     public function distributorCompany()
     {
         return $this->belongsTo(Company::class, 'distributor'); // 'store_company_1' is the foreign key
+    }
+
+    public function files()
+    {
+        return $this->hasMany(ChemicalImportFile::class, 'chemical_import_id')->latest('id');
     }
 }

@@ -57,7 +57,7 @@
                         @enderror
                     </div>
 
-                    <h3 class="text-xl mt-10 mb-4 text-gray-600">สิทธิ์การเข้าถึงแต่ละเมนู</h3>
+                    <h3 class="text-xl mt-10 mb-4 text-gray-600">สิทธิ์การเข้าถึงแต่ละเมนู </h3>
                     <div class="bg-white shadow-xl rounded-2xl overflow-hidden border border-gray-200">
                         <div class="overflow-x-auto">
                             <table class="min-w-full bg-white">

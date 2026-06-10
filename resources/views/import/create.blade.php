@@ -1,10 +1,10 @@
 <x-app-layout>
     <div class="max-w-5xl mx-auto p-8 bg-white shadow-lg rounded-2xl space-y-10 mt-6">
         <h2 class="text-4xl font-extrabold text-gray-700 mb-8 pb-4 text-center border-b border-gray-300">
-            แบบฟอร์มข้อมูลทะเบียนนำเข้าวัตถุดิบ
+            แบบฟอร์มข้อมูลทะเบียนนำเข้า
         </h2>
 
-        <form method="POST" action="{{ route('import.store') }}" class="space-y-10">
+        <form id="importForm" method="POST" action="{{ route('import.store') }}" class="space-y-10">
             @csrf
             <div>
                 <h3
@@ -12,11 +12,13 @@
                     ข้อมูลการนำเข้าทั่วไป
                 </h3>
                 <div class="grid grid-cols-2 md:grid-cols-2 gap-6 mt-4">
+
+                    {{-- บริษัทที่ขึ้นทะเบียน --}}
                     <div>
-                        <label class="mx-3 text-base block text-gray-700 mb-1 mt-3">บริษัทที่ขึ้นทะเบียน
-                            <span class="text-red-500"> *</span>
+                        <label class="mx-3 text-base block text-gray-700 mb-1 mt-3">
+                            บริษัทที่ขึ้นทะเบียน <span class="text-red-500">*</span>
                         </label>
-                        <div class="dropdown" id="companyDropdown">
+                        <div class="dropdown focus:outline-none focus:ring-2 focus:ring-blue-500" id="companyDropdown">
                             <div style="height: 50px;" class="text-gray-500 dropdown-btn" id="companyBtn">
                                 @if (old('company_id'))
                                 {{ $companies->firstWhere('id', old('company_id'))->full_name ?? '-- เลือก --' }}
@@ -28,31 +30,30 @@
                                 <div class="dropdown-item text-gray-500" data-value="">-- เลือก --</div>
                                 @foreach ($companies as $company)
                                 @if ($company->type == 1)
-                                <div class="dropdown-item" data-value="{{ $company->id }}">
-                                    {{ $company->full_name }}
-                                </div>
+                                <div class="dropdown-item" data-value="{{ $company->id }}">{{ $company->full_name }}</div>
                                 @endif
                                 @endforeach
                             </div>
                         </div>
                         <input type="hidden" name="company_id" id="companyInput" value="{{ old('company_id') }}">
-                        @error('company_id')
-                        <p class="text-red-500 text-xs italic mt-1">{{ $message }}</p>
-                        @enderror
+                        <p id="company_error" class="text-red-500 text-xs italic mt-1 hidden"></p>
                     </div>
+                    {{-- เลขที่ทะเบียน --}}
                     <div>
                         <label class="mx-3 text-base block text-gray-700 mb-1 mt-3">เลขที่ทะเบียน</label>
-                        <input type="text" name="registration_number" value="{{ old('registration_number') }}"
-                            placeholder="ใส่เลขที่ทะเบียน"
+                        <input
+                            type="text"
+                            id="registration_number"
+                            name="registration_number"
+                            value="{{ old('registration_number') }}"
+                            placeholder="เช่น 123-2568 หรือ 123456-2568"
                             class="w-full p-3 border rounded-full focus:outline-none focus:ring-2 focus:ring-blue-500" />
-                        @error('registration_number')
-                        <p class="text-red-500 text-xs italic mt-1">{{ $message }}</p>
-                        @enderror
+                        <p id="registration_error" class="text-red-500 text-xs italic mt-1 hidden"></p>
                     </div>
                     <div>
                         <label class="mx-3 text-base block text-gray-700 mb-1 mt-3">วันหมดอายุ</label>
-                        <input type="date" name="expired_license_date" value="{{ old('expired_license_date') }}"
-                            class="w-full p-3 border rounded-full focus:outline-none focus:ring-2 focus:ring-blue-500" />
+                        <input type="text" name="expired_license_date" class="date-th w-full p-3 border rounded-full" placeholder="วว/ดด/ปปปป" value="{{ old('expired_license_date') }}">
+
                         @error('expired_license_date')
                         <p class="text-red-500 text-xs italic mt-1">{{ $message }}</p>
                         @enderror
@@ -100,9 +101,9 @@
                                 @if (old('registration_type'))
                                 @php
                                 $registrationTypes = [
-                                'F' => 'F',
-                                'R' => 'R',
-                                'R(F)' => 'R(F)',
+                                'T' => 'T',
+                                'I' => 'I',
+                                // 'R(F)' => 'R(F)',
                                 ];
                                 @endphp
                                 {{ $registrationTypes[old('registration_type')] ?? '-- เลือก --' }}
@@ -112,9 +113,8 @@
                             </div>
                             <div class="dropdown-list" id="registrationTypeList">
                                 <div class="dropdown-item text-gray-500" data-value="">-- เลือกประเภททะเบียน --</div>
-                                <div class="dropdown-item" data-value="F">F</div>
-                                <div class="dropdown-item" data-value="R">R</div>
-                                <div class="dropdown-item" data-value="R(F)">R(F)</div>
+                                <div class="dropdown-item" data-value="T">T</div>
+                                <div class="dropdown-item" data-value="I">I</div>
                             </div>
                         </div>
                         <input type="hidden" name="registration_type" id="registrationTypeInput"
@@ -194,32 +194,14 @@
                     </div>
                     <div>
                         <label class="mx-3 text-base block text-gray-700 mb-1 mt-3">ชนิด</label>
-
-                        <div class="dropdown" id="typeDropdown">
-                            <div style="height: 50px;" class="text-gray-500 dropdown-btn" id="typeBtn">
-                                @if (old('type_production_registration') !== null && old('type_production_registration') !== '')
-                                {{ old('type_production_registration') }}
-                                @else
-                                -- เลือก --
-                                @endif
-                            </div>
-                            <div class="dropdown-list" id="typeList">
-                                <div class="dropdown-item text-gray-500" data-value="">-- เลือก --</div>
-                                <div class="dropdown-item" data-value="1">1</div>
-                                <div class="dropdown-item" data-value="2">2</div>
-                                <div class="dropdown-item" data-value="3">3</div>
-                                <div class="dropdown-item" data-value="4">4</div>
-                            </div>
-                        </div>
-
-                        <input type="hidden" name="type_production_registration" id="typeInput"
-                            value="{{ old('type_production_registration') }}">
+                        <input type="text" name="type_production_registration"
+                            value="{{ old('type_production_registration') }}" placeholder="ใส่ชื่อชนิด"
+                            class="w-full p-3 border rounded-full focus:outline-none focus:ring-2 focus:ring-blue-500" />
                         @error('type_production_registration')
                         <p class="text-red-500 text-xs italic mt-1">{{ $message }}</p>
                         @enderror
                     </div>
-
-                    <!-- <div>
+                    <div>
                         <label class="mx-3 text-base block text-gray-700 mb-1 mt-3">การใช้</label>
                         <input type="text" name="usage_production_registration"
                             value="{{ old('usage_production_registration') }}" placeholder="ใส่ชื่อการใช้"
@@ -227,37 +209,7 @@
                         @error('usage_production_registration')
                         <p class="text-red-500 text-xs italic mt-1">{{ $message }}</p>
                         @enderror
-                    </div> -->
-
-                    <div>
-                        <label class="mx-3 text-base block text-gray-700 mb-1 mt-3">การใช้ <span class="text-red-500"> *</span></label>
-                        <div class="dropdown" id="typeOfUseDropdown">
-                            <div style="height: 50px;" class="text-gray-500 dropdown-btn" id="usage_production_registration_btn">
-                                @if (old('usage_production_registration'))
-                                {{ old('usage_production_registration') }}
-                                @else
-                                -- เลือกประเภทของการใช้ --
-                                @endif
-                            </div>
-                            <div class="dropdown-list" id="usage_production_registration_list">
-                                <div class="dropdown-item text-gray-500" data-value="">-- เลือกประเภทของการใช้ --</div>
-                                <div class="dropdown-item" data-value="A : Acaricide (สารกำจัดไรศัตรูพืช)">A : Acaricide (สารกำจัดไรศัตรูพืช)</div>
-                                <div class="dropdown-item" data-value="F : Fungicide (สารป้องกันกำจัดโรคพืช)">F : Fungicide (สารป้องกันกำจัดโรคพืช)</div>
-                                <div class="dropdown-item" data-value="H : Herbicide (สารกำจัดวัชพืช)">H : Herbicide (สารกำจัดวัชพืช)</div>
-                                <div class="dropdown-item" data-value="I : Insecticide (สารกำจัดแมลง)">I : Insecticide (สารกำจัดแมลง)</div>
-                                <div class="dropdown-item" data-value="M : Molluscicide (สารกำจัดหอย)">M : Molluscicide (สารกำจัดหอย)</div>
-                                <div class="dropdown-item" data-value="N : Nematicide (สารกำจัดไส้เดือนฝอย)">N : Nematicide (สารกำจัดไส้เดือนฝอย)</div>
-                                <div class="dropdown-item" data-value="P : PlantGrowthRegulators (สารควบคุมการเจริญเติบโตของพืช)">P : PlantGrowthRegulators (สารควบคุมการเจริญเติบโตของพืช)</div>
-                                <div class="dropdown-item" data-value="R : Rodenticide (สารกำจัดหนู)">R : Rodenticide (สารกำจัดหนู)</div>
-                            </div>
-                        </div>
-                        <input type="hidden" name="usage_production_registration" id="usage_production_registration_input" value="{{ old('usage_production_registration') }}">
-                        @error('type_of_use')
-                        <p class="text-red-500 text-xs italic mt-1">{{ $message }}</p>
-                        @enderror
                     </div>
-
-
                     <div>
                         <label class="mx-3 text-base block text-gray-700 mb-1 mt-3">กลุ่มสาร</label>
                         <input type="text" name="group_of_substances" value="{{ old('group_of_substances') }}"
@@ -323,7 +275,7 @@
                     <div>
                         <label class="mx-3 text-base block text-gray-700 mb-1 mt-3">วันหมดอายุใบแจ้งครอบครอง
                             วอ.2</label>
-                        <input type="date" name="possession_form_expiry"
+                        <input type="text" name="possession_form_expiry"
                             value="{{ old('possession_form_expiry') }}"
                             class="w-full p-3 border rounded-full focus:outline-none focus:ring-2 focus:ring-blue-500" />
                         @error('possession_form_expiry')
@@ -342,7 +294,7 @@
                     </div>
                     <div>
                         <label class="mx-3 text-base block text-gray-700 mb-1 mt-3">หมดอายุเมื่อ</label>
-                        <input type="date" name="expired_at" value="{{ old('expired_at') }}"
+                        <input type="text" name="expired_at" value="{{ old('expired_at') }}"
                             class="w-full p-3 border rounded-full focus:outline-none focus:ring-2 focus:ring-blue-500" />
                         @error('expired_at')
                         <p class="text-red-500 text-xs italic mt-1">{{ $message }}</p>
@@ -434,59 +386,66 @@
     @endif
 
     <script>
-        document.getElementById('menu-inregister')?.classList.add('side-menu--active');
         document.addEventListener('DOMContentLoaded', () => {
+            // ===== 0) ตั้ง active menu =====
+            document.getElementById('menu-inregister')?.classList.add('side-menu--active');
+
+            // ===== 1) Utility: Dropdown =====
             function setupDropdown(btnId, listId, inputId, oldValue = null) {
                 const btn = document.getElementById(btnId);
                 const list = document.getElementById(listId);
                 const input = document.getElementById(inputId);
+                if (!btn || !list || !input) return;
+
                 const items = list.querySelectorAll('.dropdown-item');
 
                 function updateBtn(label, value) {
                     btn.textContent = label;
-                    if (value === "" || label.includes('--')) {
+                    if (value === "" || (label ?? '').includes('--')) {
                         btn.classList.add('text-gray-500');
                     } else {
                         btn.classList.remove('text-gray-500');
                     }
                     input.value = value;
+                    // สำคัญ: แจ้ง validation realtime ว่ามีการเปลี่ยนค่า
+                    input.dispatchEvent(new Event('change'));
                 }
-                // Correctly set initial value based on old data
+
+                // เซ็ตค่าเริ่มต้นจาก old()
                 if (oldValue) {
-                    const match = [...items].find(i => i.dataset.value == oldValue);
+                    const match = Array.from(items).find(i => i.dataset.value == oldValue);
                     if (match) updateBtn(match.textContent, match.dataset.value);
                 } else {
-                    const initial = [...items].find(item => item.dataset.value === "");
+                    const initial = Array.from(items).find(item => item.dataset.value === "");
                     if (initial) updateBtn(initial.textContent, "");
                 }
 
-
+                // toggle dropdown
                 btn.addEventListener('click', (e) => {
-                    e.stopPropagation(); // Prevent document click from closing immediately
+                    e.stopPropagation();
                     list.classList.toggle('open');
                     btn.classList.toggle('open');
-                    // Close other dropdowns
+                    // ปิดตัวอื่น
                     document.querySelectorAll('.dropdown-list.open').forEach(openlist => {
                         if (openlist.id !== listId) {
                             openlist.classList.remove('open');
-                            document.getElementById(openlist.id.replace('List', 'Btn')).classList
-                                .remove('open');
+                            const otherBtn = document.getElementById(openlist.id.replace('List', 'Btn'));
+                            otherBtn?.classList.remove('open');
                         }
                     });
                 });
 
+                // เลือกรายการ
                 items.forEach(item => {
                     item.addEventListener('click', (e) => {
                         e.stopPropagation();
-                        const selectedValue = item.dataset.value;
-                        const selectedLabel = item.textContent;
-
-                        updateBtn(selectedLabel, selectedValue);
+                        updateBtn(item.textContent, item.dataset.value);
                         list.classList.remove('open');
                         btn.classList.remove('open');
                     });
                 });
 
+                // คลิกนอก → ปิด
                 document.addEventListener('click', (e) => {
                     if (!e.target.closest('.dropdown')) {
                         list.classList.remove('open');
@@ -494,30 +453,129 @@
                     }
                 });
             }
-            const messageBox = document.getElementById('customMessageBox');
-            const messageBoxContent = document.getElementById('messageBoxContent');
-            const closeMessageBox = document.getElementById('closeMessageBox');
 
-            function showMessageBox(message) {
-                messageBoxContent.textContent = message;
-                messageBox.classList.remove('hidden');
-            }
-
-            function hideMessageBox() {
-                messageBox.classList.add('hidden');
-            }
-
-            closeMessageBox.addEventListener('click', hideMessageBox);
-
-            // Setup for all dropdowns
+            // ===== 2) ติดตั้ง dropdown ทั้งหมด =====
             setupDropdown('companyBtn', 'companyList', 'companyInput', "{{ old('company_id') }}");
             setupDropdown('importerBtn', 'importerList', 'importerInput', "{{ old('importer') }}");
             setupDropdown('distributorBtn', 'distributorList', 'distributorInput', "{{ old('distributor') }}");
-            setupDropdown('typeBtn', 'typeList', 'typeInput', "{{ old('type_production_registration') }}");
-            setupDropdown('registrationTypeBtn', 'registrationTypeList', 'registrationTypeInput',
-                "{{ old('registration_type') }}");
-            setupDropdown('usage_production_registration_btn', 'usage_production_registration_list', 'usage_production_registration_input', "{{ old('usage_production_registration') }}");
+            setupDropdown('registrationTypeBtn', 'registrationTypeList', 'registrationTypeInput', "{{ old('registration_type') }}");
 
+            // ===== 3) Validation แบบเรียลไทม์ =====
+            const form = document.getElementById('importForm');
+            if (!form) return; // กันเผื่อ
+
+            // --- 3.1 เลขที่ทะเบียน ---
+            const regInput = document.getElementById('registration_number');
+            const regError = document.getElementById('registration_error');
+            const regRegex = /^\d+-\d{4}$/;
+
+            function showRegError(msg) {
+                regError.textContent = msg;
+                regError.classList.remove('hidden');
+                regInput.classList.add('border-red-500');
+            }
+
+            function hideRegError() {
+                regError.textContent = '';
+                regError.classList.add('hidden');
+                regInput.classList.remove('border-red-500');
+            }
+
+            function validateReg() {
+                if (!regInput) return true;
+                const val = (regInput.value || '').trim();
+                if (!val) {
+                    showRegError('กรุณากรอกเลขที่ทะเบียน');
+                    return false;
+                }
+                if (!regRegex.test(val)) {
+                    showRegError('รูปแบบต้องเป็น ตัวเลข-เลข 4 หลัก (เช่น 123-2568 หรือ 123456-2568)');
+                    return false;
+                }
+                hideRegError();
+                return true;
+            }
+            regInput?.addEventListener('input', () => {
+                const cleaned = regInput.value.replace(/[^0-9-]/g, '');
+                if (cleaned !== regInput.value) regInput.value = cleaned;
+                validateReg();
+            });
+            regInput?.addEventListener('blur', validateReg);
+
+            // --- 3.2 บริษัทที่ขึ้นทะเบียน ---
+            const companyInput = document.getElementById('companyInput');
+            const companyBtn = document.getElementById('companyBtn');
+            const companyError = document.getElementById('company_error');
+
+            function validateCompany() {
+                if (!companyInput) return true;
+                const ok = !!(companyInput.value && String(companyInput.value).trim() !== '');
+                if (!ok) {
+                    companyError.textContent = 'กรุณาเลือกบริษัทที่ขึ้นทะเบียน';
+                    companyError.classList.remove('hidden');
+                    companyBtn?.classList.add('border-red-500');
+                } else {
+                    companyError.textContent = '';
+                    companyError.classList.add('hidden');
+                    companyBtn?.classList.remove('border-red-500');
+                }
+                return ok;
+            }
+            companyInput?.addEventListener('change', validateCompany);
+
+            // ===== 4) ตรวจตอน submit =====
+            form.addEventListener('submit', (e) => {
+                let firstErrorEl = null;
+
+                // ตรวจเลขที่ทะเบียน
+                const ok1 = validateReg();
+                if (!ok1 && !firstErrorEl) firstErrorEl = regInput;
+
+                // ตรวจบริษัทที่ขึ้นทะเบียน
+                const ok2 = validateCompany();
+                if (!ok2 && !firstErrorEl) firstErrorEl = companyBtn; // ใช้ปุ่ม dropdown เป็นจุดโฟกัส
+
+                if (!ok1 || !ok2) {
+                    e.preventDefault();
+                    // ถ้ามี error → โฟกัสช่องแรกที่ผิด
+                    if (firstErrorEl) {
+                        firstErrorEl.scrollIntoView({
+                            behavior: 'smooth',
+                            block: 'center'
+                        });
+                        firstErrorEl.focus();
+                    }
+                }
+            });
+
+
+            // ===== 5) จำกัดการพิมพ์ ชื่อวัตถุอันตราย =====
+            const chemThInput = document.querySelector('input[name="chemical_name_th"]');
+            const chemEnInput = document.querySelector('input[name="chemical_name_en"]');
+
+            // ไทย: อักษรไทย, ตัวเลข, - , space, comma, dot
+            chemThInput?.addEventListener('input', () => {
+                const cleaned = chemThInput.value.replace(/[^ก-๙0-9\-,. ]/g, '');
+                if (cleaned !== chemThInput.value) chemThInput.value = cleaned;
+            });
+
+            // อังกฤษ: อักษรอังกฤษ, ตัวเลข, - , space, comma, dot
+            chemEnInput?.addEventListener('input', () => {
+                const cleaned = chemEnInput.value.replace(/[^A-Za-z0-9\-,. ]/g, '');
+                if (cleaned !== chemEnInput.value) chemEnInput.value = cleaned;
+            });
+
+
+
+        });
+    </script>
+
+    <script src="https://cdn.jsdelivr.net/npm/flatpickr"></script>
+    <script>
+        flatpickr("#expired_license_date", {
+            dateFormat: "d/m/Y", // dd/mm/yyyy
+            allowInput: true,
+            locale: "th" // ใช้ภาษาไทยด้วยถ้าต้องการ
         });
     </script>
 

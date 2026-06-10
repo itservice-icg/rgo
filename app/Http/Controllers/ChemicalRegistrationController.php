@@ -4,11 +4,14 @@ namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
 use App\Models\ChemicalRegistration;
-use App\Models\DrugProgressStep; // Assuming this is the model for drug progress steps
-use Illuminate\Support\Facades\Log; // For logging errors
+use App\Models\DrugProgressStep;
+use App\Models\ChemicalImport;
+use App\Models\ProductionRegistration;
+use Illuminate\Support\Facades\Log;
 use App\Models\Company;
 use Carbon\Carbon;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Auth; // This line is crucial
 
 
 class ChemicalRegistrationController extends Controller
@@ -20,28 +23,38 @@ class ChemicalRegistrationController extends Controller
      * @return \Illuminate\Http\Response
      */
 
+
     public function index(Request $request)
     {
+        //  dd($request->all());
+
         $query = ChemicalRegistration::query();
         $query->where('new_or_old', true);
 
         // ค้นหาตามคำค้น
-        if ($request->has('search') && $request->search != '') {
-            $search = $request->search;
-            $query->where(function ($q) use ($search) {
-                $q->where('trade_name', 'like', '%' . $search . '%')
-                    ->orWhere('chemical_name_th', 'like', '%' . $search . '%')
-                    ->orWhere('registration_number', 'like', '%' . $search . '%');
+        if ($request->filled('search')) {
+            // Normalize search: trim, remove whitespace, lowercase
+            $rawSearch = (string) $request->input('search');
+            $normalized = mb_strtolower(preg_replace('/\s+/', '', $rawSearch));
+
+            $query->where(function ($q) use ($normalized) {
+                // Use REPLACE to remove spaces from columns and compare lowercase for better matching.
+                $like = '%' . $normalized . '%';
+                $q->whereRaw("REPLACE(LOWER(trade_name), ' ', '') LIKE ?", [$like])
+                    ->orWhereRaw("REPLACE(LOWER(chemical_name_th), ' ', '') LIKE ?", [$like])
+                    ->orWhereRaw("REPLACE(LOWER(chemical_name_en), ' ', '') LIKE ?", [$like])
+                    ->orWhereRaw("REPLACE(LOWER(registration_number), ' ', '') LIKE ?", [$like]);
             });
         }
 
         // ค้นหาตามวันที่
         if ($request->filled('expiry_date_from') && $request->filled('expiry_date_to')) {
-            $query->whereBetween('date_submit_request', [
-                $request->input('expiry_date_from'),
-                $request->input('expiry_date_to'),
-            ]);
+            $from = $this->convertThaiDateToCarbon($request->input('expiry_date_from'));
+            $to   = $this->convertThaiDateToCarbon($request->input('expiry_date_to'))->endOfDay();
+
+            $query->whereBetween('created_at', [$from, $to]);
         }
+
 
         // ฟิลเตอร์ตามสถานะ
         $statusFilter = $request->input('status_filter');
@@ -80,7 +93,7 @@ class ChemicalRegistrationController extends Controller
                 'จัดซื้อต่างประเทศ' => ['ทะเบียน', 'ใบอนุญาตในประเทศผู้ผลิต', 'เอกสารอนุญาตอื่นๆ'],
                 'ฝ่ายขาย' => ['รายชื่อผู้ขอขึ้นทะเบียน', 'ชื่อการค้า', 'Packing'],
                 'วิจัยและพัฒนา' => ['เตรียมข้อมูลผลิตตัวอย่าง'],
-                'แผนกวิชาการ' => ['แผนการทดลอง'],
+                'แผนกวิชาการ' => ['แผนการทดลอง', 'หนังสือขอยกเว้น PHI', 'แผน PHI'],
                 'แผนกทะเบียน' => [
                     'ตรวจสอบเอกสารขึ้นทะเบียน',
                     'ตรวจชื่อการค้า',
@@ -97,7 +110,7 @@ class ChemicalRegistrationController extends Controller
             if ($expiryDate->isPast()) {
                 $product->status = 'หมดอายุ';
             } elseif ($expiryDate->diffInMonths($now) <= 6) {
-                $product->status = 'ใกล้หมดอายุ';
+                $product->status = 'ใกล้หมด';
             } else {
                 $product->status = 'ใช้งานอยู่';
             }
@@ -144,7 +157,7 @@ class ChemicalRegistrationController extends Controller
                 ->where('step_number', 1)
                 ->where('sub_step_index', $planIndex)
                 ->first();
-            $isPlanNone = $planNoteRecord && $planNoteRecord->created_by === 'no';
+            $isPlanNone = $planNoteRecord && $planNoteRecord->created_by === 'ไม่มี';
             $product->isPlanNone = $isPlanNone;
         }
 
@@ -181,64 +194,69 @@ class ChemicalRegistrationController extends Controller
 
     public function store(Request $request)
     {
-        // dd($request->all());
-        $validatedData = $request->validate([
-            'chemical_imports_id' => 'nullable|integer', // Changed from string to integer based on schema
-            'registration_number' => 'nullable|string',
-            'registration_number_pass' => 'nullable|string',
-            'registration_expiry_date' => 'nullable|date',
-            'chemical_name_th' => 'required|string',
-            'chemical_name_en' => 'nullable|string',
-            'composition' => 'nullable|string', // text field can be validated as string
-            'manufacturer' => 'required|string',
-            'registrant' => 'required|string',
-            'registration_type' => 'required|string',
-            'importer' => 'required|string',
-            'distributor' => 'required|string',
-            'trade_name' => 'required|string',
-            'trade_name_at' => 'nullable|string',
-            'production_license_number' => 'nullable|string',
-            'production_license_expiry' => 'nullable|date',
-            'production_license_quantity' => 'nullable|string',
-            'possession_form_wo2' => 'nullable|string',
-            'possession_form_expiry' => 'nullable|date',
-            'application_received_date' => 'nullable|date',
-            'expired_license_number' => 'nullable|string',
-            'expired_at' => 'nullable|date',
-            'old_license_quantity' => 'nullable|string',
-            'packaging_size' => 'nullable|string',
-            'formula_of_ratio' => 'required|string',
-            'type_registration' => 'required|string',
-            'common_name' => 'nullable|string',
-            'packaging_size_details' => 'nullable|string',
-            'type_of_use' => 'required|string',
-            'date_submit_request' => 'nullable|date',
-            'request_number_1' => 'nullable|string',
-            'request_number_phase_1' => 'nullable|string',
-            'date_request_phase_3' => 'nullable|date',
-            'request_number_phase_3' => 'nullable|string',
-            'name_position' => 'required|string',
-            'remarks' => 'nullable|string', // text field can be validated as string
-            'new_or_old' => 'nullable|boolean', // boolean field
-            'step' => 'nullable|string',
-            'chemical_type' => 'nullable|string',
-            'company' => 'nullable|string',
-            'store_company_1' => 'nullable|string',
-            'store_company_2' => 'nullable|string',
-            'status' => 'nullable|string',
-            'is_active' => 'nullable|boolean', // boolean field
-            'is_deleted' => 'nullable|boolean', // boolean field
-            'image' => 'nullable|string',
-            'document' => 'nullable|string',
-            'progress' => 'nullable|numeric', // decimal field
-            'sub_progress' => 'nullable|numeric', // decimal field
-            'created_by' => 'nullable|string',
-            'updated_by' => 'nullable|string',
-        ]);
-
-        // 2. กำหนดค่า progress เริ่มต้น 0 (หรือจะเป็น 12.5% ถ้าต้องการ)
-        $validatedData['progress'] = 0;
         try {
+            // dd($request->all());
+            $validatedData = $request->validate([
+                'chemical_imports_id' => 'nullable|integer', // Changed from string to integer based on schema
+                'registration_number' => 'nullable|string',
+                'registration_number_pass' => 'nullable|string',
+                'registration_expiry_date' => 'nullable|date',
+                'chemical_name_th' => 'required|string',
+                'chemical_name_en' => 'required|string',
+                'composition' => 'nullable|string', // text field can be validated as string
+                'manufacturer' => 'required|string',
+                'registrant' => 'required|string',
+                'registration_type' => 'required|string',
+                'importer' => 'required|string',
+                'distributor' => 'required|string',
+                'trade_name' => 'required|string',
+                'trade_name_at' => 'nullable|string',
+                'production_license_number' => 'nullable|string',
+                'production_license_expiry' => 'nullable|date',
+                'production_license_quantity' => 'nullable|string',
+                'possession_form_wo2' => 'nullable|string',
+                'possession_form_expiry' => 'nullable|string',
+                'application_received_date' => 'nullable|date',
+                'expired_license_number' => 'nullable|string',
+                'expired_at' => 'nullable|string',
+                'old_license_quantity' => 'nullable|string',
+                'packaging_size' => 'nullable|string',
+                'formula_of_ratio' => 'nullable|string',
+                'type_registration' => 'required|string',
+                'common_name' => 'nullable|string',
+                'packaging_size_details' => 'nullable|string',
+                'type_of_use' => 'required|string',
+                'date_submit_request' => 'nullable|date',
+                'request_number_1' => 'nullable|string',
+                'request_number_phase_1' => 'nullable|string',
+                'date_request_phase_3' => 'nullable|date',
+                'request_number_phase_3' => 'nullable|string',
+                'name_position' => 'required|string',
+                'remarks' => 'nullable|string', // text field can be validated as string
+                'new_or_old' => 'nullable|boolean', // boolean field
+                'step' => 'nullable|string',
+                'chemical_type' => 'nullable|string',
+                'company' => 'nullable|string',
+                'store_company_1' => 'nullable|string',
+                'store_company_2' => 'nullable|string',
+                'status' => 'nullable|string',
+                'is_active' => 'nullable|boolean', // boolean field
+                'is_deleted' => 'nullable|boolean', // boolean field
+                'image' => 'nullable|string',
+                'document' => 'nullable|string',
+                'progress' => 'nullable|numeric', // decimal field
+                'sub_progress' => 'nullable|numeric', // decimal field
+                'created_by' => 'nullable|string',
+                'updated_by' => 'nullable|string',
+                'group_of_substances' => 'nullable|string',
+                'plant' => 'nullable|string',
+                'pests' => 'nullable|string',
+                'quantity' => 'nullable|string',
+            ]);
+
+            // 2. กำหนดค่า progress เริ่มต้น 0 (หรือจะเป็น 12.5% ถ้าต้องการ)
+            $validatedData['progress'] = 0;
+
             $chemical_registration = ChemicalRegistration::create($validatedData);
             // 4. สร้างหัวข้อย่อยเริ่มต้นให้กับขั้นตอนที่ 1 โดยไม่มีการเลือก (checked_at = null)
             // กำหนดหัวข้อย่อยขั้นตอน 1 จำนวน 3 หัวข้อ (ตาม requirement ล่าสุด)
@@ -247,7 +265,7 @@ class ChemicalRegistrationController extends Controller
                     'จัดซื้อต่างประเทศ' => ['ทะเบียน', 'ใบอนุญาตในประเทศผู้ผลิต', 'เอกสารอนุญาตอื่นๆ'],
                     'ฝ่ายขาย' => ['รายชื่อผู้ขอขึ้นทะเบียน', 'ชื่อการค้า', 'Packing'],
                     'วิจัยและพัฒนา' => ['เตรียมข้อมูลผลิตตัวอย่าง'],
-                    'แผนกวิชาการ' => ['แผนการทดลอง'],
+                    'แผนกวิชาการ' => ['แผนการทดลอง', 'หนังสือขอยกเว้น PHI', 'แผน PHI'],
                     'แผนกทะเบียน' => [
                         'ตรวจสอบเอกสารขึ้นทะเบียน',
                         'ตรวจชื่อการค้า',
@@ -275,8 +293,8 @@ class ChemicalRegistrationController extends Controller
             }
 
             return redirect()->back()->with('success', 'บันทึกข้อมูลสำเร็จ');
-        } catch (\Exception $e) {
-            // \Log::error("Error creating product: " . $e->getMessage());
+        } catch (\Illuminate\Validation\ValidationException $e) {
+            \Log::error('Validation errors: ', $e->errors());
             return redirect()->back()->withInput()->withErrors(['error' => 'เกิดข้อผิดพลาดในการบันทึกข้อมูล: ' . $e->getMessage()]);
         }
     }
@@ -432,6 +450,18 @@ class ChemicalRegistrationController extends Controller
     {
         try {
             $drug = ChemicalRegistration::findOrFail($id);
+
+            $request->merge([
+                'registration_expiry_date'  => $this->convertDate($request->input('registration_expiry_date')),
+                'production_license_expiry' => $this->convertDate($request->input('production_license_expiry')),
+                // 'possession_form_expiry'    => $this->convertDate($request->input('possession_form_expiry')),
+                'application_received_date' => $this->convertDate($request->input('application_received_date')),
+                // 'expired_at'                => $this->convertDate($request->input('expired_at')),
+                'date_submit_request'       => $this->convertDate($request->input('date_submit_request')),
+                'date_request_phase_3'      => $this->convertDate($request->input('date_request_phase_3')),
+            ]);
+
+
             $validatedData = $request->validate([
                 'chemical_imports_id' => 'nullable|integer', // ตัวอย่าง: ฟิลด์นี้ถูกกำหนดให้ required
                 'registration_number' => 'nullable|string',
@@ -451,10 +481,10 @@ class ChemicalRegistrationController extends Controller
                 'production_license_expiry' => 'nullable|date',
                 'production_license_quantity' => 'nullable|string',
                 'possession_form_wo2' => 'nullable|string',
-                'possession_form_expiry' => 'nullable|date',
+                'possession_form_expiry' => 'nullable|string',
                 'application_received_date' => 'nullable|date',
                 'expired_license_number' => 'nullable|string',
-                'expired_at' => 'nullable|date',
+                'expired_at' => 'nullable|string',
                 'old_license_quantity' => 'nullable|string',
                 'packaging_size' => 'nullable|string',
                 'formula_of_ratio' => 'nullable|string', // ตัวอย่าง: ฟิลด์นี้ถูกกำหนดให้ nullable
@@ -484,12 +514,67 @@ class ChemicalRegistrationController extends Controller
                 'sub_progress' => 'nullable|numeric',
                 'created_by' => 'nullable|string',
                 'updated_by' => 'nullable|string',
+                'group_of_substances' => 'nullable|string',
+                'plant' => 'nullable|string',
+                'pests' => 'nullable|string',
+                'quantity' => 'nullable|string',
             ]);
 
             // ตั้งค่าเพิ่มเติม (หากมีเลขทะเบียนให้ถือว่าเป็นของเก่า)
             if (!empty($validatedData['registration_number'])) {
                 $validatedData['new_or_old'] = false;
                 $validatedData['progress'] = 100;
+
+                if ($validatedData['registration_type'] == 'T : นำเข้าสารเข้มข้น' || $validatedData['registration_type'] == 'I : นำเข้าสำเร็จรูป') {
+                    // 2. Map ข้อมูลและกำหนดค่าเริ่มต้น/เพิ่มเติม
+                    $companyId = Company::where('full_name', $validatedData['registrant'])->firstOrFail()->id;
+                    $distributorId = Company::where('full_name', $validatedData['distributor'])->firstOrFail()->id;
+                    $importerId = Company::where('full_name', $validatedData['importer'])->firstOrFail()->id;
+                    $dataToSave = $validatedData;
+                    $dataToSave['expired_license_date'] = $request->input('production_license_expiry', null); // ใช้ค่าจากฟอร์ม ถ้าไม่มี ให้ 'pending'
+                    $dataToSave['company_id'] = $companyId;
+                    $dataToSave['distributor'] = $distributorId;
+                    $dataToSave['company_id'] = $companyId;
+                    $dataToSave['importer'] = $importerId;
+                    $dataToSave['trade_name_at'] = $request->input('name_position', null);
+                    $dataToSave['type_production_registration'] = $request->input('type_registration', null);
+                    $dataToSave['usage_production_registration'] = $request->input('type_of_use', null);
+                    $dataToSave['production_license_quantity'] = $request->input('quantity', null);
+                    $dataToSave['production_license_expiry'] = null;
+
+                    if (Auth::check()) {
+                        $dataToSave['created_by'] = Auth::id(); // หรือ Auth::user()->name หากต้องการชื่อ
+                    } else {
+                        $dataToSave['created_by'] = null; // หรือกำหนดเป็นค่าอื่นหากผู้ใช้ไม่ได้ล็อกอิน
+                    }
+
+                    ChemicalImport::create($dataToSave);
+                } else {
+                    // 2. Map ข้อมูลและกำหนดค่าเริ่มต้น/เพิ่มเติม
+                    $companyId = Company::where('full_name', $validatedData['registrant'])->firstOrFail()->id;
+                    $distributorId = Company::where('full_name', $validatedData['distributor'])->firstOrFail()->id;
+                    $importerId = Company::where('full_name', $validatedData['importer'])->firstOrFail()->id;
+                    $dataToSave = $validatedData;
+                    $dataToSave['expired_license_date'] = $request->input('production_license_expiry', null); // ใช้ค่าจากฟอร์ม ถ้าไม่มี ให้ 'pending'
+                    $dataToSave['company_id'] = $companyId;
+                    $dataToSave['distributor'] = $distributorId;
+                    $dataToSave['company_id'] = $companyId;
+                    $dataToSave['importer'] = $importerId;
+                    $dataToSave['trade_name_at'] = $request->input('name_position', null);
+                    $dataToSave['type_production_registration'] = $request->input('type_registration', null);
+                    $dataToSave['usage_production_registration'] = $request->input('type_of_use', null);
+                    $dataToSave['production_license_quantity'] = $request->input('quantity', null);
+                    $dataToSave['production_license_expiry'] = null;
+
+                    if (Auth::check()) {
+                        $dataToSave['created_by'] = Auth::id(); // หรือ Auth::user()->name หากต้องการชื่อ
+                    } else {
+                        $dataToSave['created_by'] = null; // หรือกำหนดเป็นค่าอื่นหากผู้ใช้ไม่ได้ล็อกอิน
+                    }
+
+
+                    ProductionRegistration::create($dataToSave);
+                }
             }
 
             $drug->fill($validatedData);
@@ -497,7 +582,11 @@ class ChemicalRegistrationController extends Controller
 
             return redirect()->back()->with('success', 'บันทึกข้อมูลสำเร็จ');
         } catch (\Exception $e) {
-            // ในกรณีที่เกิดข้อผิดพลาดอื่นๆ ที่ไม่ใช่ validation error
+            \Log::error("Error update product: " . $e->getMessage(), [
+                'trace' => $e->getTraceAsString(),
+                'request' => $request->all(), // ข้อมูลฟอร์มที่ส่งมา
+            ]);
+
             return redirect()->back()->withInput()->withErrors(['error' => 'เกิดข้อผิดพลาดในการบันทึกข้อมูล: ' . $e->getMessage()]);
         }
     }
@@ -533,6 +622,7 @@ class ChemicalRegistrationController extends Controller
         $stepNumber = (int) $request->input('step_number');
         $selectedIndexes = $request->input('sub_steps', []);
         $notes = $request->input('sub_step_notes', []);
+        $remarks = $request->input('sub_step_remarks', []);
         $show_step_number = $request->input('progress');
         $drug->progress = $show_step_number;
         $drug->save();
@@ -543,7 +633,7 @@ class ChemicalRegistrationController extends Controller
                 'จัดซื้อต่างประเทศ' => ['ทะเบียน', 'ใบอนุญาตในประเทศผู้ผลิต', 'เอกสารอนุญาตอื่นๆ'],
                 'ฝ่ายขาย' => ['รายชื่อผู้ขอขึ้นทะเบียน', 'ชื่อการค้า', 'Packing'],
                 'วิจัยและพัฒนา' => ['เตรียมข้อมูลผลิตตัวอย่าง'],
-                'แผนกวิชาการ' => ['แผนการทดลอง'],
+                'แผนกวิชาการ' => ['แผนการทดลอง', 'หนังสือขอยกเว้น PHI', 'แผน PHI'],
                 'แผนกทะเบียน' => [
                     'ตรวจสอบเอกสารขึ้นทะเบียน',
                     'ตรวจชื่อการค้า',
@@ -637,7 +727,7 @@ class ChemicalRegistrationController extends Controller
             ->where('step_number', 1)
             ->where('sub_step_index', $planIndex)
             ->first();
-        $isPlanNone = $planNoteRecord && $planNoteRecord->created_by === 'no';
+        $isPlanNone = $planNoteRecord && $planNoteRecord->created_by === 'ไม่มี';
 
         $stepStructure = $rawStructure[$stepNumber] ?? [];
         $flatItems = [];
@@ -651,7 +741,13 @@ class ChemicalRegistrationController extends Controller
                     continue;
                 }
 
-                if ($department === $mappedDept || auth()->user()->hasRole('admin') || auth()->user()->hasRole('manager')) {
+                if (
+                    $department === $mappedDept ||
+                    auth()->user()->hasRole('admin') ||
+                    auth()->user()->hasRole('manager') ||
+                    auth()->user()->hasRole('head Registration')
+                ) {
+
                     DrugProgressStep::updateOrCreate(
                         [
                             'chemical_registrations_id' => $drug->id,
@@ -663,6 +759,7 @@ class ChemicalRegistrationController extends Controller
                             'department' => $department,
                             'checked_at' => in_array($index, $selectedIndexes) ? now() : null,
                             'created_by' => $notes[$index] ?? null,
+                            'remark' => $remarks[$index] ?? null,
                         ]
                     );
                 }
@@ -799,7 +896,7 @@ class ChemicalRegistrationController extends Controller
             if ($expiryDate <= $today) {
                 $product->status = 'หมดอายุ';
             } elseif ($expiryDate->diffInDays($now) <= 180) { // เปรียบเทียบเป็นวันสำหรับ 180 วัน
-                $product->status = 'ใกล้หมดอายุ';
+                $product->status = 'ใกล้หมด';
             } else {
                 $product->status = 'ใช้งานอยู่';
             }
@@ -862,10 +959,10 @@ class ChemicalRegistrationController extends Controller
                 'production_license_expiry' => 'nullable|date',
                 'production_license_quantity' => 'nullable|string',
                 'possession_form_wo2' => 'nullable|string',
-                'possession_form_expiry' => 'nullable|date',
+                'possession_form_expiry' => 'nullable|string',
                 'application_received_date' => 'nullable|date',
                 'expired_license_number' => 'nullable|string',
-                'expired_at' => 'nullable|date',
+                'expired_at' => 'nullable|string',
                 'old_license_quantity' => 'nullable|string',
                 'packaging_size' => 'nullable|string',
                 'formula_of_ratio' => 'nullable|string',
@@ -930,5 +1027,29 @@ class ChemicalRegistrationController extends Controller
         }
 
         return view('product_all.show', compact('registration', 'companies', 'checkplan'));
+    }
+
+    private function convertDate($value)
+    {
+        if (!$value) return null;
+        if (preg_match('#^\d{2}/\d{2}/\d{4}$#', $value)) {
+            [$dd, $mm, $yyyy] = explode('/', $value);
+            if ((int)$yyyy > 2400) $yyyy -= 543;
+            return sprintf('%04d-%02d-%02d', $yyyy, $mm, $dd);
+        }
+        return $value; // ปล่อยผ่านถ้าเป็น yyyy-mm-dd อยู่แล้ว
+    }
+
+    private function convertThaiDateToCarbon($dateString)
+    {
+        // ถ้าเป็น format dd/mm/yyyy (เช่น 01/10/2568)
+        if (preg_match('/\d{2}\/\d{2}\/\d{4}/', $dateString)) {
+            [$day, $month, $year] = explode('/', $dateString);
+            $year = (int)$year - 543; // แปลงจาก พ.ศ. → ค.ศ.
+            return Carbon::createFromDate($year, $month, $day)->startOfDay();
+        }
+
+        // ถ้าเป็น yyyy-mm-dd (เช่น 2025-10-01)
+        return Carbon::parse($dateString)->startOfDay();
     }
 }

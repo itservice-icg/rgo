@@ -1,6 +1,6 @@
 <x-app-layout>
     <div class="max-w-4xl mx-auto p-6 bg-white shadow rounded">
-        <h2 class="text-2xl font-semibold mb-4">นำเข้าข้อมูลวัตถุอันตราย</h2>
+        <h2 class="text-2xl font-semibold mb-4">นำข้อมูลเข้า</h2>
 
         {{-- Success --}}
         @if (session('success'))

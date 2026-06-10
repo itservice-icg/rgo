@@ -33,32 +33,34 @@ class ProductionRegistrationImport implements ToModel, WithHeadingRow
         };
 
         return new ProductionRegistration([
-            'company_id'          =>  $row['company_id'] ?? null, // คุณต้องมีคอลัมน์ company_id ใน Excel หรือหา id จากชื่อบริษัท
-            'registration_number'           => $row['registration_number'] ?? null,
-            'expired_license_date'          => $parseDate($row['expired_license_date'] ?? null),
-            'chemical_name_th'              => $row['chemical_name_th'] ?? null,
-            'chemical_name_en'              => $row['chemical_name_en'] ?? null,
-            'composition'                   => $row['composition'] ?? null,
-            'manufacturer'                  => $row['manufacturer'] ?? null,
-            'registrant'                    => $row['registrant'] ?? null,
-            'registration_type'             => $row['registration_type'] ?? null,
-            'importer'                      => $row['importer'] ?? null,
-            'distributor'                   => $row['distributor'] ?? null,
-            'trade_name'                    => $row['trade_name'] ?? null,
-            'trade_name_at'                 => $row['trade_name_at'] ?? null,
-            'type_production_registration'  => $row['type_production_registration'] ?? null,
-            'usage_production_registration' => $row['usage_production_registration'] ?? null,
-            'group_of_substances'           => $row['group_of_substances'] ?? null,
-            'plant'                         => $row['plant'] ?? null,
-            'pests'                         => $row['pests'] ?? null,
-            'production_license_number'     => $row['production_license_number'] ?? null,
-            'production_license_expiry'     => $parseDate($row['production_license_expiry'] ?? null),
-            'production_license_quantity'   => $row['production_license_quantity'] ?? null,
-            'possession_form_wo2'           => $row['possession_form_wo2'] ?? null,
-            'possession_form_expiry'        => $parseDate($row['possession_form_expiry'] ?? null),
-            'packaging_size_details'        => $row['packaging_size_details'] ?? null,
-            'registration_number_pass'      => $row['registration_number_pass'] ?? null,
-            'expired_at'                    => $parseDate($row['expired_at'] ?? null),
+            'company_id'                  => $row['company_id'] ?? null, // คุณต้องมีคอลัมน์ company_id ใน Excel หรือหา id จากชื่อบริษัท
+                'registration_number'         => $row['registration_number'] ?? null, // เลขที่ทะเบียน
+                'expired_license_date'        => $parseDate($row['expired_license_date'] ?? null), // วันหมดอายุ
+                'chemical_name_th'            => $row['chemical_name_th'] ?? null, // ชื่อวัตถุอันตราย (ไทย)
+                'chemical_name_en'            => $row['chemical_name_en'] ?? null, // ชื่อวัตถุอันตราย (อังกฤษ)
+                'composition'                 => $row['composition'] ?? null, // เปอร์เซ็นต์และสูตร
+                'manufacturer'                => $row['manufacturer'] ?? null, // ผู้ผลิตและแหล่งผลิต
+                'registrant'                  => $row['registrant'] ?? null, // ผู้ขึ้นทะเบียน
+                'registration_type'           => $row['registration_type'] ?? null, // ประเภททะเบียน
+                'importer'                    => $row['importer'] ?? null, // ชื่อผู้นำเข้า
+                'distributor'                 => $row['distributor'] ?? null, // ชื่อผู้จำหน่าย
+                'trade_name'                  => $row['trade_name'] ?? null, // ชื่อการค้า
+                'trade_name_at'               => $row['trade_name_at'] ?? null, // ชื่อการค้าที่
+                'type_production_registration'  => $row['type_production_registration'] ?? null, // ชนิดทะเบียน
+                'usage_production_registration' => $row['usage_production_registration'] ?? null, // ประเภทของการใช้
+                'group_of_substances'         => $row['group_of_substances'] ?? null, // กลุ่มสาร
+                'plant'                       => $row['plant'] ?? null, // พืช
+                'pests'                       => $row['pests'] ?? null, // ศัตรูพืช
+                'registration_number_pass'    => $row['registration_number_pass'] ?? null, // เลขที่ใบอนุญาต
+                'production_license_expiry'   => $parseDate($row['production_license_expiry'] ?? null), // วันหมดอายุใบอนุญาต
+                'production_license_quantity' => $row['production_license_quantity'] ?? null, // ปริมาณ
+                'possession_form_wo2'         => $row['possession_form_wo2'] ?? null, // ใบแจ้งครอบครอง วอ.2
+                'possession_form_expiry'         => $row['possession_form_expiry'] ?? null, // วันหมดอายุใบแจ้งครอบครอง วอ.2
+                // 'possession_form_expiry'      => $parseDate($row['possession_form_expiry'] ?? null), // วันหมดอายุใบแจ้งครอบครอง วอ.2
+                'packaging_size_details'      => $row['packaging_size_details'] ?? null, // รายละเอียดขนาดบรรจุ
+                'production_license_number'   => $row['production_license_number'] ?? null, // ใบอนุญาตเลขที่เดิม
+                'expired_at'   => $row['expired_at'] ?? null, // วันหมดอายุใบอนุญาตเดิม
+                // 'expired_at'                  => $parseDate($row['expired_at'] ?? null), // วันหมดอายุใบอนุญาตเดิม
         ]);
     }
 

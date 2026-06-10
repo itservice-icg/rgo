@@ -15,36 +15,38 @@ class CreateProductionRegistrationTable extends Migration
     {
         Schema::create('production_registration', function (Blueprint $table) {
             $table->id();
-            $table->foreignId('company_id') // บริษัทที่ขึ้นทะเบียนผลิต
+            $table->foreignId('company_id') // บริษัทที่ขึ้นทะเบียน
                 ->nullable()
                 ->constrained('companies')
                 ->onDelete('set null');
-            $table->string('registration_number')->nullable(); // เลขที่ทะเบียนผลิต
-            $table->date('expired_license_date')->nullable(); // วันหมดอายุทะเบียน
+            $table->string('registration_number')->nullable(); // เลขที่ทะเบียน
+            $table->date('expired_license_date')->nullable(); // วันหมดอายุ
+            $table->text('composition')->nullable(); // เปอร์เซ็นต์และสูตร
             $table->string('chemical_name_th')->nullable(); // ชื่อวัตถุอันตราย (ไทย)
             $table->string('chemical_name_en')->nullable(); // ชื่อวัตถุอันตราย (อังกฤษ)
-            $table->text('composition')->nullable(); // % และสูตร
-            $table->text('manufacturer')->nullable(); // ชื่อผู้ผลิตและแหล่งผลิต
-            $table->string('registrant')->nullable(); // ผู้ขึ้นทะเบียน
+            $table->text('manufacturer')->nullable(); // ผู้ผลิตและแหล่งผลิต
             $table->string('registration_type')->nullable(); // ประเภททะเบียน
             $table->string('importer')->nullable(); // ชื่อผู้นำเข้า
             $table->string('distributor')->nullable(); // ชื่อผู้จำหน่าย
             $table->string('trade_name')->nullable(); // ชื่อการค้า
             $table->string('trade_name_at')->nullable(); // ชื่อการค้าที่
-            $table->string('type_production_registration')->nullable(); // ชนิด
-            $table->string('usage_production_registration')->nullable(); // การใช้
+            $table->string('type_production_registration')->nullable(); // ชนิดทะเบียน
+            $table->string('usage_production_registration')->nullable(); // ประเภทของการใช้
             $table->string('group_of_substances')->nullable(); // กลุ่มสาร
             $table->string('plant')->nullable(); // พืช
             $table->string('pests')->nullable(); // ศัตรูพืช
-            $table->string('production_license_number')->nullable(); // เลขที่ใบอนุญาตผลิต
+            $table->string('production_license_quantity')->nullable(); // ปริมาณ
+            $table->string('registration_number_pass')->nullable(); // เลขที่ใบอนุญาต
             $table->date('production_license_expiry')->nullable(); // วันหมดอายุใบอนุญาต
-            $table->string('production_license_quantity')->nullable(); // ปริมาณผลิตใบอนุญาต
+            $table->string('production_license_number')->nullable(); // ใบอนุญาตเลขที่เดิม
+            $table->text('expired_at')->nullable(); // วันหมดอายุใบอนุญาตเดิม
             $table->string('possession_form_wo2')->nullable(); // ใบแจ้งครอบครอง วอ.2
-            $table->date('possession_form_expiry')->nullable(); // วันหมดอายุใบแจ้งครอบครอง วอ.2
+            $table->text('possession_form_expiry')->nullable(); // วันหมดอายุใบแจ้งครอบครอง วอ.2
             $table->text('packaging_size_details')->nullable(); // รายละเอียดขนาดบรรจุ
-            $table->string('registration_number_pass')->nullable(); // เลขที่ทะเบียนผลิตที่ผ่าน
-            $table->date('registration_expiry_date')->nullable(); // เลขที่ใบอนุญาตหมดอายุ
-            $table->date('expired_at')->nullable(); // หมดอายุเมื่อ
+
+            // No Data
+            $table->string('registrant')->nullable(); // ผู้ขึ้นทะเบียน
+            $table->text('registration_expiry_date')->nullable(); // เลขที่ใบอนุญาตหมดอายุ
             $table->string('status_date')->nullable(); // สถานะวัน
             $table->text('remarks')->nullable(); // อื่นๆ (ระบุ)
             $table->boolean('new_or_old')->default(true); // สถานะของข้อมูล (true = ใหม่, false = เก่า)

@@ -1,6 +1,23 @@
+<style>
+    .mobile-only {
+        display: none !important;
+    }
+
+    @media (max-width: 960px) {
+        .mobile-hidden {
+            display: none !important;
+        }
+
+        .mobile-only {
+            display: grid !important;
+        }
+    }
+</style>
+
 <x-app-layout>
     <main class="flex-1 overflow-x-hidden overflow-y-auto">
-        <div class=" rounded-2xl shadow-md max-w-full mx-auto py-10 px-4">
+        {{-- <div class="rounded-2xl shadow-md max-w-full mx-auto py-10 px-4"> --}}
+        <div class="rounded-2xl  max-w-5xl mx-auto py-10 px-4">
             <h1 class="text-4xl font-extrabold text-center text-indigo-700 mt-5 mb-10 tracking-wide">
                 <span class="inline-flex items-center gap-2">
                     <svg class="w-10 h-10 text-indigo-400" fill="none" stroke="currentColor" stroke-width="2"
@@ -13,15 +30,19 @@
                     แดชบอร์ด
                 </span>
             </h1>
-            <div class="flex flex-row justify-around mb-8">
+
+            <!-- layout responsive: บนสุด 1 ใบ, ล่าง 2 ใบ -->
+            <div class="grid md:grid-cols-2 gap-6 mb-8">
+                <!-- การ์ดบน: ขึ้นทะเบียนสินค้าใหม่ (กิน 2 ช่องบนจอใหญ่) -->
                 <a href="{{ route('newregis.index') }}"
-                    class="group bg-gradient-to-br from-green-100 to-green-50 p-4 rounded-3xl text-center border-2 border-green-200 hover:scale-105 transition-all duration-300"
-                    style="width: 300px; height: 200px;">
+                    class="group bg-gradient-to-br from-green-100 to-green-50 p-4 rounded-3xl text-center 
+                           border-2 border-green-200 hover:scale-105 transition-all duration-300 
+                           h-[200px] col-span-1 md:col-span-2">
                     <div class="flex justify-center mb-2">
                         <div class="bg-green-200 rounded-full p-3 group-hover:bg-green-300 transition">
                             <svg xmlns="http://www.w3.org/2000/svg" width="40" height="40" viewBox="0 0 24 24"
                                 fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
-                                stroke-linejoin="round" class="lucide lucide-clipboard-pen-icon lucide-clipboard-pen">
+                                stroke-linejoin="round" class="lucide lucide-clipboard-pen">
                                 <rect width="8" height="4" x="8" y="2" rx="1" />
                                 <path d="M16 4h2a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2h-5.5" />
                                 <path d="M4 13.5V6a2 2 0 0 1 2-2h2" />
@@ -30,277 +51,133 @@
                             </svg>
                         </div>
                     </div>
-                    <h2 class="text-lg font-bold text-green-700 mb-1 tracking-wide">ขึ้นทะเบียนสินค้าใหม่</h2>
+                    {{-- <h2 class="text-lg font-bold text-green-700 mb-1 tracking-wide">ขึ้นทะเบียนสินค้าใหม่</h2> --}}
+                    <h2 class="text-2xl font-bold text-green-700 mb-4 tracking-wide">ขึ้นทะเบียนใหม่</h2>
+
+                    {{-- <p class="text-4xl text-green-600 font-extrabold mb-1">{{ $totalNewRegistrations }}</p> --}}
                     <p class="text-4xl text-green-600 font-extrabold mb-1">{{ $totalNewRegistrations }}</p>
-                </a>
-            </div>
 
-            <div class="flex flex-wrap justify-center gap-10 mt-10 mb-10">
-                {{-- กราฟ 1 --}}
-                <a href="{{ route('import.index') }}" class="group">
-                    <div class="w-full sm:w-[300px] max-w-xs bg-white p-6 rounded-2xl shadow-md border border-gray-200">
-                        <h2 class="text-center text-lg font-bold text-blue-700 mb-4">ทะเบียนนำเข้าวัตถุดิบ</h2>
-                        <hr>
-                        <div class="aspect-w-1 aspect-h-1 mt-4 mb-10">
-                            <canvas id="myChart"></canvas>
+
+                </a>
+
+                <!-- การ์ดนำเข้า -->
+                <a href="{{ route('import.index') }}"
+                    class="group bg-gradient-to-br from-blue-300 to-blue-50 p-4 rounded-3xl text-center 
+                           border-2 border-blue-200 hover:scale-105 transition-all duration-300 
+                           h-[200px]">
+                    <div class="flex justify-center mb-2">
+                        <div class="bg-blue-200 rounded-full p-3 group-hover:bg-blue-300 transition">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="50" height="50" viewBox="0 0 24 24"
+                                fill="none" stroke="currentColor" stroke-width="1.25" stroke-linecap="round"
+                                stroke-linejoin="round" class="lucide lucide-file-text">
+                                <path d="M15 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7Z" />
+                                <path d="M14 2v4a2 2 0 0 0 2 2h4" />
+                                <path d="M10 9H8" />
+                                <path d="M16 13H8" />
+                                <path d="M16 17H8" />
+                            </svg>
                         </div>
-                        <div class="flex justify-center items-center gap-4 mt-4 text-sm">
-                            <div class="flex items-center gap-2">
-                                <span class="w-3 h-3 rounded-full"
-                                    style="background-color: rgba(26, 168, 88, 1);"></span>
-                                <span>ทั้งหมด</span>
-                            </div>
-                            <div class="flex items-center gap-2">
-                                <span class="w-3 h-3 rounded-full"
-                                    style="background-color: rgba(235, 179, 8, 1);"></span>
-                                <span>ใกล้หมดอายุ</span>
-                            </div>
-                            <div class="flex items-center gap-2">
-                                <span class="w-3 h-3 rounded-full" style="background-color: rgba(254, 2, 2, 1);"></span>
-                                <span>หมดอายุ</span>
-                            </div>
+                    </div>
+                    <h2 class="text-2xl font-bold text-blue-700 mb-4 tracking-wide">ทะเบียนนำเข้า</h2>
+                    <div class="grid grid-cols-3 gap-3 mt-2 mobile-hidden">
+                        <div class="bg-green-100 border border-green-200 rounded-xl p-2 shadow-sm">
+                            <p class="text-2xl font-bold text-green-600 mb-2 mt-2 tracking-wide">ทั้งหมด</p>
+                            <p class="text-4xl text-green-600 font-extrabold mb-1">{{ $totalImport }}</p>
+                        </div>
+                        <div class="bg-yellow-100 border border-yellow-200 rounded-xl p-2 shadow-sm">
+                            <p class="text-2xl font-bold text-yellow-600 mb-2 mt-2 tracking-wide">ใกล้หมด</p>
+                            <p class="text-4xl text-yellow-600 font-extrabold mb-1">{{ $soonImport }}</p>
+                        </div>
+                        <div class="bg-red-100 border border-red-200 rounded-xl p-2 shadow-sm">
+                            <p class="text-2xl font-bold text-red-600 mb-2 mt-2 tracking-wide">หมดอายุ</p>
+                            {{-- <p class="md:text-xl font-bold text-red-600 mt-2">{{ $expiredImport }}</p> --}}
+                            <p class="text-4xl text-red-600 font-extrabold mb-1">{{ $expiredImport }}</p>
+
+                        </div>
+                    </div>
+                    <div class="grid grid-rows-3 gap-3 mt-2 mobile-only">
+                        <div class="bg-green-100 border border-green-200 rounded-xl p-2 shadow-sm">
+                            <p class="text-2xl font-bold text-green-600 mb-2 mt-2 tracking-wide">ทั้งหมด</p>
+                            <p class="text-4xl text-green-600 font-extrabold mb-1">{{ $totalImport }}</p>
+                        </div>
+                        <div class="bg-yellow-100 border border-yellow-200 rounded-xl p-2 shadow-sm">
+                            <p class="text-2xl font-bold text-yellow-600 mb-2 mt-2 tracking-wide">ใกล้หมด</p>
+                            <p class="text-4xl text-yellow-600 font-extrabold mb-1">{{ $soonImport }}</p>
+                        </div>
+                        <div class="bg-red-100 border border-red-200 rounded-xl p-2 shadow-sm">
+                            <p class="text-2xl font-bold text-red-600 mb-2 mt-2 tracking-wide">หมดอายุ</p>
+                            {{-- <p class="md:text-xl font-bold text-red-600 mt-2">{{ $expiredImport }}</p> --}}
+                            <p class="text-4xl text-red-600 font-extrabold mb-1">{{ $expiredImport }}</p>
+
                         </div>
                     </div>
                 </a>
 
-
-                {{-- กราฟ 3 --}}
-                <a href="{{ route('createproduct.index') }}" class="group">
-                    <div class="w-full sm:w-[300px] max-w-xs bg-white p-6 rounded-2xl shadow-md border border-gray-200">
-                        <h2 class="text-center text-lg font-bold text-blue-700 mb-4">ทะเบียนผลิต</h2>
-                        <hr>
-                        <div class="aspect-w-1 aspect-h-1 mt-4 mb-10">
-                            <canvas id="myChart3"></canvas>
+                <!-- การ์ดผลิต -->
+                <a href="{{ route('createproduct.index') }}"
+                    class="group bg-gradient-to-br from-blue-300 to-blue-50 p-4 rounded-3xl text-center 
+                           border-2 border-blue-200 hover:scale-105 transition-all duration-300 
+                           h-[250px]">
+                    <div class="flex justify-center mb-2">
+                        <div class="bg-blue-200 rounded-full p-3 group-hover:bg-blue-300 transition">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="50" height="50" viewBox="0 0 24 24"
+                                fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
+                                stroke-linejoin="round" class="lucide lucide-clipboard-check">
+                                <rect width="8" height="4" x="8" y="2" rx="1" ry="1" />
+                                <path d="M16 4h2a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h2" />
+                                <path d="m9 14 2 2 4-4" />
+                            </svg>
                         </div>
-                        <div class="flex justify-center items-center gap-4 mt-4 text-sm">
-                            <div class="flex items-center gap-2">
-                                <span class="w-3 h-3 rounded-full"
-                                    style="background-color: rgba(26, 168, 88, 1);"></span>
-                                <span>ทั้งหมด</span>
-                            </div>
-                            <div class="flex items-center gap-2">
-                                <span class="w-3 h-3 rounded-full"
-                                    style="background-color: rgba(235, 179, 8, 1);"></span>
-                                <span>ใกล้หมดอายุ</span>
-                            </div>
-                            <div class="flex items-center gap-2">
-                                <span class="w-3 h-3 rounded-full" style="background-color: rgba(254, 2, 2, 1);"></span>
-                                <span>หมดอายุ</span>
-                            </div>
+                    </div>
+                    {{-- <h2 class="text-lg font-bold text-blue-700 mb-4 tracking-wide">ทะเบียนผลิต</h2> --}}
+                    <h2 class="text-2xl font-bold text-blue-700 mb-4 tracking-wide">ทะเบียนผลิต</h2>
+
+                    <div class="grid grid-cols-3 gap-3 mt-2 mobile-hidden">
+                        <div class="bg-green-100 border border-green-200 rounded-xl p-2 shadow-sm">
+                            {{-- <p class="md:text-lg text-green-600">ทั้งหมด</p> --}}
+                            <p class="text-2xl font-bold text-green-600 mb-2 mt-2 tracking-wide">ทั้งหมด</p>
+                            {{-- <p class="md:text-xl font-bold text-green-600 mt-2">{{ $totalProduct }}</p> --}}
+                            <p class="text-4xl text-green-600 font-extrabold mb-1">{{ $totalProduct }}</p>
+                        </div>
+                        <div class="bg-yellow-100 border border-yellow-200 rounded-xl p-2 shadow-sm">
+                            {{-- <p class="md:text-lg text-yellow-600">ใกล้หมด</p> --}}
+                            <p class="text-2xl font-bold text-yellow-600 mb-2 mt-2 tracking-wide">ใกล้หมด</p>
+                            {{-- <p class="md:text-xl font-bold text-yellow-600 mt-2">{{ $soonProduct }}</p> --}}
+                            <p class="text-4xl text-yellow-600 font-extrabold mb-1">{{ $soonProduct }}</p>
+                        </div>
+                        <div class="bg-red-100 border border-red-200 rounded-xl p-2 shadow-sm">
+                            {{-- <p class="md:text-lg text-red-600">หมดอายุ</p> --}}
+                            <p class="text-2xl font-bold text-red-600 mb-2 mt-2 tracking-wide">หมดอายุ</p>
+
+                            {{-- <p class="md:text-xl font-bold text-red-600 mt-2">{{ $expiredProduct }}</p> --}}
+                            <p class="text-4xl text-red-600 font-extrabold mb-1">{{ $expiredProduct }}</p>
+
+                        </div>
+                    </div>
+                    <div class="grid grid-rows-3 gap-3 mt-2 mobile-only">
+                        <div class="bg-green-100 border border-green-200 rounded-xl p-2 shadow-sm">
+                            {{-- <p class="md:text-lg text-green-600">ทั้งหมด</p> --}}
+                            <p class="text-2xl font-bold text-green-600 mb-2 mt-2 tracking-wide">ทั้งหมด</p>
+                            {{-- <p class="md:text-xl font-bold text-green-600 mt-2">{{ $totalProduct }}</p> --}}
+                            <p class="text-4xl text-green-600 font-extrabold mb-1">{{ $totalProduct }}</p>
+                        </div>
+                        <div class="bg-yellow-100 border border-yellow-200 rounded-xl p-2 shadow-sm">
+                            {{-- <p class="md:text-lg text-yellow-600">ใกล้หมด</p> --}}
+                            <p class="text-2xl font-bold text-yellow-600 mb-2 mt-2 tracking-wide">ใกล้หมด</p>
+                            {{-- <p class="md:text-xl font-bold text-yellow-600 mt-2">{{ $soonProduct }}</p> --}}
+                            <p class="text-4xl text-yellow-600 font-extrabold mb-1">{{ $soonProduct }}</p>
+                        </div>
+                        <div class="bg-red-100 border border-red-200 rounded-xl p-2 shadow-sm">
+                            {{-- <p class="md:text-lg text-red-600">หมดอายุ</p> --}}
+                            <p class="text-2xl font-bold text-red-600 mb-2 mt-2 tracking-wide">หมดอายุ</p>
+
+                            {{-- <p class="md:text-xl font-bold text-red-600 mt-2">{{ $expiredProduct }}</p> --}}
+                            <p class="text-4xl text-red-600 font-extrabold mb-1">{{ $expiredProduct }}</p>
+
                         </div>
                     </div>
                 </a>
-
-                {{-- กราฟ 2 --}}
-                <a href="{{ route('newregis.productall') }}" class="group">
-                    <div class="w-full sm:w-[300px] max-w-xs bg-white p-6 rounded-2xl shadow-md border border-gray-200">
-                        <h2 class="text-center text-lg font-bold text-blue-700 mb-4">ทะเบียนสินค้า</h2>
-                        <hr>
-                        <div class="aspect-w-1 aspect-h-1 mt-4 mb-10">
-                            <canvas id="myChart2"></canvas>
-                        </div>
-                        <div class="flex justify-center items-center gap-4 mt-4 text-sm">
-                            <div class="flex items-center gap-2">
-                                <span class="w-3 h-3 rounded-full"
-                                    style="background-color: rgba(26, 168, 88, 1);"></span>
-                                <span>ทั้งหมด</span>
-                            </div>
-                            <div class="flex items-center gap-2">
-                                <span class="w-3 h-3 rounded-full"
-                                    style="background-color: rgba(235, 179, 8, 1);"></span>
-                                <span>ใกล้หมดอายุ</span>
-                            </div>
-                            <div class="flex items-center gap-2">
-                                <span class="w-3 h-3 rounded-full" style="background-color: rgba(254, 2, 2, 1);"></span>
-                                <span>หมดอายุ</span>
-                            </div>
-                        </div>
-                    </div>
             </div>
         </div>
-
-
-        {{-- <div class="container mx-auto px-6 py-6">
-            <h2 class="text-center text-lg font-bold text-red-700 mb-5 tracking-wide">
-                กราฟแท่ง
-            </h2>
-            <canvas id="myChart5" class="max-w-6xl mx-auto"></canvas>
-        </div> --}}
     </main>
-    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-    <script>
-        const dataMyChart = {
-            labels: [
-                'ทั้งหมด',
-                'ใกล้หมดอายุ',
-                'หมดอายุ'
-            ],
-            datasets: [{
-                label: 'จำนวน',
-                data: [{{ $totalImport }}, {{ $soonImport }}, {{ $expiredImport }}],
-                backgroundColor: [
-                    'rgba(26, 168, 88, 1)', // สีเขียว (ทั้งหมด)
-                    'rgba(235, 179, 8, 1)', // สีเหลือง (ใกล้หมดอายุ)
-                    'rgba(254, 2, 2, 1)' // สีแดง (หมดอายุ)
-                ],
-                hoverOffset: 4
-            }]
-        };
-
-        const configMyChart = {
-            type: 'doughnut',
-            data: dataMyChart,
-            options: {
-                plugins: {
-                    legend: {
-                        display: false // <--- เพิ่มบรรทัดนี้เพื่อซ่อน legend
-                    }
-                }
-            }
-        };
-
-        // *** ข้อมูลและ Config สำหรับ myChart2 (ทะเบียนสินค้า) ***
-        const dataMyChart2 = {
-            labels: [
-                'ทั้งหมด',
-                'ใกล้หมดอายุ',
-                'หมดอายุ'
-            ],
-            datasets: [{
-                label: 'จำนวน',
-                data: [{{ $totalRegistrations }}, {{ $soonRegistrations }}, {{ $expiredRegistrations }}],
-                backgroundColor: [
-                    'rgba(26, 168, 88, 1)', // สีเขียว (ทั้งหมด)
-                    'rgba(235, 179, 8, 1)', // สีเหลือง (ใกล้หมดอายุ)
-                    'rgba(254, 2, 2, 1)' // สีแดง (หมดอายุ)
-                ],
-                hoverOffset: 4
-            }]
-        };
-
-        const configMyChart2 = {
-            type: 'doughnut',
-            data: dataMyChart2,
-            options: {
-                plugins: {
-                    legend: {
-                        display: false
-                    }
-                }
-            }
-        };
-
-        // *** ข้อมูลและ Config สำหรับ myChart3 (ทะเบียนผลิต) ***
-        const dataMyChart3 = {
-            labels: [
-                'ทั้งหมด',
-                'ใกล้หมดอายุ',
-                'หมดอายุ'
-            ],
-            datasets: [{
-                label: 'จำนวน',
-                data: [{{ $totalProduct }}, {{ $soonProduct }}, {{ $expiredProduct }}],
-                backgroundColor: [
-                    'rgba(26, 168, 88, 1)', // สีเขียว (ทั้งหมด)
-                    'rgba(235, 179, 8, 1)', // สีเหลือง (ใกล้หมดอายุ)
-                    'rgba(254, 2, 2, 1)' // สีแดง (หมดอายุ)
-                ],
-                hoverOffset: 4
-            }]
-        };
-
-        const configMyChart3 = {
-            type: 'doughnut',
-            data: dataMyChart3,
-            options: {
-                plugins: {
-                    legend: {
-                        display: false
-                    }
-                }
-            }
-        };
-
-        // *** ข้อมูลและ Config สำหรับ myChart3 (ทะเบียนผลิต) ***
-        const dataMyChart4 = {
-            labels: [
-                'ทั้งหมด',
-                'อยู่ระหว่างดำเนินการ',
-                // 'สำเร็จ'
-            ],
-            datasets: [{
-                label: 'จำนวน',
-                data: [{{ $totalNewRegistrations }}, {{ $betweenNewRegistrations }}],
-                backgroundColor: [
-                    'rgba(26, 168, 88, 1)', // สีเขียว (ทั้งหมด)
-                    'rgba(235, 179, 8, 1)', // สีเหลือง (ใกล้หมดอายุ)
-                    'rgba(254, 2, 2, 1)' // สีแดง (หมดอายุ)
-                ],
-                hoverOffset: 4
-            }]
-        };
-
-        const configMyChart4 = {
-            type: 'doughnut',
-            data: dataMyChart4,
-            options: {
-                plugins: {
-                    legend: {
-                        display: false
-                    }
-                }
-            }
-        };
-
-        // *** สร้างกราฟโดนัททั้งสาม ***
-        const ctx = document.getElementById('myChart');
-        new Chart(ctx, configMyChart);
-
-        const ctx2 = document.getElementById('myChart2');
-        new Chart(ctx2, configMyChart2);
-
-        const ctx3 = document.getElementById('myChart3');
-        new Chart(ctx3, configMyChart3);
-
-        const ctx4 = document.getElementById('myChart4');
-        new Chart(ctx4, configMyChart4);
-
-
-        // *** ข้อมูลและ Config สำหรับ myChart4 (กราฟแท่ง) ***
-        const labelsBarChart = ['มกราคม', 'กุมภาพันธ์', 'มีนาคม', 'เมษายน', 'พฤษภาคม', 'มิถุนายน', 'กรกฎาคม'];
-
-        const dataBarChart = {
-            labels: labelsBarChart,
-            datasets: [{
-                    label: 'ยอดขายปัจจุบัน',
-                    data: [65, 59, 80, 81, 56, 55, 40],
-                    backgroundColor: 'rgba(255, 99, 132, 0.6)',
-                    borderColor: 'rgb(255, 99, 132)',
-                    borderWidth: 1
-                },
-                {
-                    label: 'ยอดขายเป้าหมาย',
-                    data: [70, 65, 75, 85, 60, 60, 45],
-                    backgroundColor: 'rgba(54, 162, 235, 0.6)',
-                    borderColor: 'rgb(54, 162, 235)',
-                    borderWidth: 1
-                }
-            ]
-        };
-
-        const configBarChart = {
-            type: 'bar',
-            data: dataBarChart,
-            options: {
-                scales: {
-                    y: {
-                        beginAtZero: true
-                    }
-                }
-            },
-        };
-
-        const ctx5 = document.getElementById('myChart5');
-        new Chart(ctx5, configBarChart);
-    </script>
 </x-app-layout>

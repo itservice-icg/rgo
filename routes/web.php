@@ -43,6 +43,9 @@ Route::middleware(['auth'])->group(function () {
     Route::get('/import/create', [ChemicalImportController::class, 'create'])->name('import.create');
     Route::post('/import/store', [ChemicalImportController::class, 'store'])->name('import.store');
     Route::get('/import/{import}/edit', [ChemicalImportController::class, 'edit'])->name('import.edit');
+    Route::get('/import/{import}/additional-document', [ChemicalImportController::class, 'additionalDocument'])->name('import.additional-document');
+    Route::get('/import/{import}/files/{file}', [ChemicalImportController::class, 'file'])->name('import.file');
+    Route::delete('/import/{import}/files/{file}', [ChemicalImportController::class, 'destroyFile'])->name('import.file.destroy');
     Route::put('/import/{import}', [ChemicalImportController::class, 'update'])->name('import.update');
     Route::delete('/import/{import}', [ChemicalImportController::class, 'destroy'])->name('import.destroy');
     Route::get('/import/{import}', [ChemicalImportController::class, 'show'])->name('import.show');
@@ -60,14 +63,15 @@ Route::middleware(['auth'])->group(function () {
     Route::put('/new/productall/{newregi}', [ChemicalRegistrationController::class, 'updateAll'])->name('newregis.updateall');
     Route::get('/new/productall/{newregi}/show', [ChemicalRegistrationController::class, 'showAll'])->name('newregis.showall');
 
-
-
-
     Route::get('/create/product', [ProductionRegistrationController::class, 'index'])->name('createproduct.index');
     Route::get('/insert/product', [ProductionRegistrationController::class, 'create'])->name('createproduct.create');
     Route::post('/store/product', [ProductionRegistrationController::class, 'store'])->name('createproduct.store');
     Route::get('/edit/product/{productionRegistration}', [ProductionRegistrationController::class, 'edit'])->name('createproduct.edit');
-    Route::put('/update/product/{productionRegistration}', [ProductionRegistrationController::class, 'update'])->name('createproduct.update');
+    Route::get('/product/{productionRegistration}/additional-document', [ProductionRegistrationController::class, 'additionalDocument'])->name('createproduct.additional-document');
+    Route::get('/product/{productionRegistration}/files/{file}', [ProductionRegistrationController::class, 'file'])->name('createproduct.file');
+    Route::delete('/product/{productionRegistration}/files/{file}', [ProductionRegistrationController::class, 'destroyFile'])->name('createproduct.file.destroy');
+    // Route::put('/import/{import}', [ProductionRegistrationController::class, 'update'])->name('createproduct.update');
+    Route::put('/import2/{import}', [ProductionRegistrationController::class, 'update'])->name('createproduct.update');
     Route::get('/show/product/{productionRegistration}', [ProductionRegistrationController::class, 'show'])->name('createproduct.show');
     Route::delete('/createproducts/{id}', [ProductionRegistrationController::class, 'destroy'])->name('createproduct.destroy');
 

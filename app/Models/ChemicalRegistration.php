@@ -62,6 +62,11 @@ class ChemicalRegistration extends Model
         'sub_progress',
         'created_by',
         'updated_by',
+        'group_of_substances',  // กลุ่มสาร
+        'plant',                // พืช
+        'pests',                // ศัตรูพืช
+        'quantity',             // ปริมาณ
+        'created_at',             
     ];
 
     // Optional: สำหรับวันที่ที่เป็น Carbon instance เช่น soft delete, timestamps
@@ -71,9 +76,9 @@ class ChemicalRegistration extends Model
         'is_deleted' => 'boolean',
         'registration_expiry_date' => 'date',
         'production_license_expiry' => 'date',
-        'possession_form_expiry' => 'date',
+        // 'possession_form_expiry' => 'date',
         'application_received_date' => 'date',
-        'expired_at' => 'date',
+        // 'expired_at' => 'date',
         'date_request_phase_3' => 'date',
         'progress' => 'float',
         'sub_progress' => 'float',
@@ -100,6 +105,6 @@ class ChemicalRegistration extends Model
     public function checkPlan($id)
     {
         return DrugProgressStep::where('chemical_registrations_id', $id)
-            ->where('created_by', 'yes')->exists();
+            ->where('created_by', 'มี')->exists();
     }
 }

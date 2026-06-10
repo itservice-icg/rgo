@@ -39,12 +39,7 @@ return [
         'web' => [
             'driver' => 'session',
             'provider' => 'users',
-        ],
-        'front' => [
-            'driver' => 'session',
-            'provider' => 'frontusers',
-        ],
-        
+        ],        
     ],
 
     /*
@@ -69,12 +64,6 @@ return [
             'driver' => 'eloquent',
             'model' => App\Models\User::class,
         ],
-        
-        'frontusers' => [
-            'driver' => 'eloquent',
-            'model' => App\Models\Frontuser::class,
-        ],
-
         // 'users' => [
         //     'driver' => 'database',
         //     'table' => 'users',

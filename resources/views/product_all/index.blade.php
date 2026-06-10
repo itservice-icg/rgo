@@ -81,7 +81,7 @@
             <div class="flex flex-col sm:flex-row justify-between items-center mx-3 mb-2">
                 <form action="{{ route('newregis.productall') }}" method="GET" class="flex items-center gap-2 mb-2">
                     <div class="relative flex-grow min-w-[280px]">
-                        <label for="search_query" class="mx-3 text-base block text-gray-700 mb-1 mt-3">ค้นหาชื่อ</label>
+                        <label for="search_query" class="mx-3 text-base block text-gray-700 mb-1 mt-3">ค้นหา</label>
                         <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none mt-9">
                             <svg class="w-5 h-5 text-gray-400" fill="none" stroke="currentColor" stroke-width="2"
                                 viewBox="0 0 24 24">
@@ -171,7 +171,7 @@
                                             if ($statusText == 'หมดอายุ') {
                                                 $statusClass =
                                                     'inline-block rounded-full px-3 py-1 font-semibold text-white bg-red-500';
-                                            } elseif ($statusText == 'ใกล้หมดอายุ') {
+                                            } elseif ($statusText == 'ใกล้หมด') {
                                                 $statusClass =
                                                     'inline-block rounded-full px-3 py-1 font-semibold text-gray-600 bg-yellow-300';
                                             } else {

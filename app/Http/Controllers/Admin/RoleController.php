@@ -52,13 +52,14 @@ class RoleController extends Controller
             // 'Report' => 'รายงาน',
             // 'Role' => 'สิทธิ์',
             // 'User' => 'ผู้ใช้',
-            'Inregister' => 'ทะเบียนนำเข้าวัตถุดิบ',
+            'Inregister' => 'ทะเบียนนำเข้าทั้งหมด',
             'RegisterManufacture' => 'ทะเบียนผลิตทั้งหมด',
             'RegisterAll' => 'ทะเบียนสินค้าทั้งหมด',
-            'RegisterNew' => 'ขึ้นทะเบียนสินค้าใหม่',
+            'RegisterNew' => 'ขึ้นทะเบียนใหม่',
              'Company' => 'บริษัท',
-            'import_data_manufacture' => 'นำเข้าทะเบียนผลิต',
-            'import_data_staple' => 'นำเข้าวัตถุอันตราย',
+            'import_data_staple' => 'อัพโหลดทะเบียนนำเข้า',
+            'import_data_manufacture' => 'อัพโหลดทะเบียนผลิต',
+            // เพิ่มเมนูอื่นๆ ตามต้องการ
         ];
 
         $menus = [];
@@ -116,11 +117,13 @@ class RoleController extends Controller
 
         // กำหนดชื่อเมนูภาษาไทย
         $menuNames = [
-            'Inregister' => 'ทะเบียนนำเข้าวัตถุดิบ',
+            'Inregister' => 'ทะเบียนนำเข้าทั้งหมด',
             'RegisterManufacture' => 'ทะเบียนผลิตทั้งหมด',
             'RegisterAll' => 'ทะเบียนสินค้าทั้งหมด',
             'RegisterNew' => 'ขึ้นทะเบียนสินค้าใหม่',
             'Company' => 'บริษัท',
+            'import_data_staple' => 'อัพโหลดทะเบียนนำเข้า',
+            'import_data_manufacture' => 'อัพโหลดทะเบียนผลิต',
             // เพิ่มเมนูอื่นๆ ตามต้องการ
         ];
 
@@ -150,8 +153,26 @@ class RoleController extends Controller
      */
     public function update(Request $request, Role $role)
     {
-        $role->update(['name' => $request->name]);
-        $role->syncPermissions($request->permissions);
+        $role->update([
+            'name' => $request->filled('name') ? $request->name : $role->name,
+        ]);
+
+        $hiddenMenus = ['Report', 'Role', 'User', 'RegisterContinue'];
+        $hiddenPermissionIds = $role->permissions()
+            ->where(function ($query) use ($hiddenMenus) {
+                foreach ($hiddenMenus as $menu) {
+                    $query->orWhere('name', 'like', $menu . ' %');
+                }
+            })
+            ->pluck('id');
+
+        $permissions = collect($request->input('permissions', []))
+            ->merge($hiddenPermissionIds)
+            ->unique()
+            ->values()
+            ->all();
+
+        $role->syncPermissions($permissions);
         return redirect()->back()->withSuccess('Role updated !!!');
     }
 

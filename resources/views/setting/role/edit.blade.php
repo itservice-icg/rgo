@@ -118,6 +118,7 @@
             const selectPosition = document.getElementById('select_position');
             const selectDepartment = document.getElementById('select_department');
             const combinedNameInput = document.getElementById('role_combined_name');
+            const originalName = combinedNameInput.value;
 
             function updateCombinedName() {
                 const position = selectPosition.value;
@@ -130,7 +131,7 @@
                     combinedText += department;
                 }
 
-                combinedNameInput.value = combinedText;
+                combinedNameInput.value = combinedText || originalName;
             }
 
             selectPosition.addEventListener('change', updateCombinedName);

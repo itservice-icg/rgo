@@ -59,10 +59,12 @@ class ProductionRegistration extends Model
         'is_deleted',
         'image',
         'document',
+        'additional_document',
         'progress',
         'sub_progress',
         'created_by',
         'updated_by',
+        'created_at',
     ];
 
     /**
@@ -72,33 +74,13 @@ class ProductionRegistration extends Model
      */
     protected $casts = [
         'expired_license_date' => 'date',
-        'production_license_expiry' => 'date',
-        'possession_form_expiry' => 'date',
-        'registration_expiry_date' => 'date',
-        'expired_at' => 'date',
+        // 'production_license_expiry' => 'date',
         'new_or_old' => 'boolean',
         'is_active' => 'boolean',
         'is_deleted' => 'boolean',
         'progress' => 'decimal:2', // Cast to decimal with 2 precision
         'sub_progress' => 'decimal:2', // Cast to decimal with 2 precision
     ];
-
-    // You can also define default values here, though it's often handled in migrations
-    // protected $attributes = [
-    //     'new_or_old' => true,
-    //     'status' => 'pending',
-    //     'is_active' => true,
-    //     'is_deleted' => false,
-    //     'progress' => 0.00,
-    //     'sub_progress' => 0.00,
-    // ];
-
-    // If you need to define relationships, you would do so here.
-    // For example, if a production registration belongs to a user:
-    // public function user()
-    // {
-    //     return $this->belongsTo(User::class, 'created_by'); // Assuming 'created_by' stores user ID
-    // }
 
     public function company()
     {
@@ -113,5 +95,10 @@ class ProductionRegistration extends Model
     public function distributorCompany()
     {
         return $this->belongsTo(Company::class, 'distributor'); // 'store_company_1' is the foreign key
+    }
+
+    public function files()
+    {
+        return $this->hasMany(ProductionRegistrationFile::class, 'production_registration_id')->latest('id');
     }
 }

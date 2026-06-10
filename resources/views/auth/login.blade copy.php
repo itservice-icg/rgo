@@ -4,7 +4,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>ระบบทะเบียนออนไลน์ (RGO)</title>
+    <title>ทะเบียนออนไลน์ (RGO)</title>
     <script src="https://cdn.tailwindcss.com"></script>
 </head>
 
@@ -12,7 +12,7 @@
     class="relative min-h-screen bg-gradient-to-b from-pink-200 via-purple-200 to-blue-200 flex items-center justify-center">
     <div class="">
         <h1 class="text-5xl font-bold text-white text-center mb-12 whitespace-nowrap">
-            ระบบทะเบียนออนไลน์ ( RGO )
+            ทะเบียนออนไลน์ ( RGO )
         </h1>
         <h2 class="text-3xl text-white text-center mb-8">เข้าสู่ระบบ</h2>
 

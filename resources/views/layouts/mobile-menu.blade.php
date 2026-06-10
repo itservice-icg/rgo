@@ -40,7 +40,7 @@
                             <path d="M16 13H8" />
                             <path d="M16 17H8" />
                         </svg>
-                        <span>ทะเบียนนำเข้าวัตถุดิบ</span>
+                        <span>ทะเบียนนำเข้าทั้งหมด</span>
                     </a>
                 </li>
             @endcanany
@@ -63,7 +63,7 @@
                     </a>
                 </li>
             @endcanany
-            @canany('RegisterAll read', 'RegisterAll create', 'RegisterAll update', 'RegisterAll delete')
+            {{-- @canany('RegisterAll read', 'RegisterAll create', 'RegisterAll update', 'RegisterAll delete')
                 <li>
                     <a href="{{ route('newregis.productall') }}"
                         class="flex items-center gap-x-3 rounded-lg p-3 text-gray-300 transition-colors duration-200 hover:bg-blue-700 hover:text-white">
@@ -77,7 +77,7 @@
                         <span>ทะเบียนสินค้าทั้งหมด</span>
                     </a>
                 </li>
-            @endcanany
+            @endcanany --}}
             @canany('RegisterNew read', 'RegisterNew create', 'RegisterNew update', 'RegisterNew delete')
                 <li>
                     <a href="{{ route('newregis.index') }}"
@@ -91,7 +91,7 @@
                             <path
                                 d="M13.378 15.626a1 1 0 1 0-3.004-3.004l-5.01 5.012a2 2 0 0 0-.506.854l-.837 2.87a.5.5 0 0 0 .62.62l2.87-.837a2 2 0 0 0 .854-.506z" />
                         </svg>
-                        <span>ขึ้นทะเบียนสินค้าใหม่</span>
+                        <span>ขึ้นทะเบียนใหม่</span>
                     </a>
                 </li>
             @endcanany

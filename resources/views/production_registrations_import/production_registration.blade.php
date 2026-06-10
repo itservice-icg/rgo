@@ -1,6 +1,6 @@
 <x-app-layout>
     <div class="max-w-4xl mx-auto p-6 bg-white shadow rounded">
-        <h2 class="text-2xl font-semibold mb-4">นำเข้าข้อมูลทะเบียนผลิต</h2>
+        <h2 class="text-2xl font-semibold mb-4">นำข้อมูลเข้า</h2>
 
         @if(session('success'))
             <div class="bg-green-100 text-green-800 p-3 rounded mb-4">

@@ -1,3 +1,25 @@
+<style>
+    nav[aria-label="Pagination Navigation"] .sm\:hidden > a,
+    nav[aria-label="Pagination Navigation"] .sm\:hidden > span {
+        font-size: 0 !important;
+        border-radius: 10px;
+        padding: 8px 16px;
+    }
+
+    nav[aria-label="Pagination Navigation"] .sm\:hidden > a:first-child::after,
+    nav[aria-label="Pagination Navigation"] .sm\:hidden > span:first-child::after {
+        content: "« ย้อนกลับ";
+        font-size: 14px;
+        font-weight: 600;
+    }
+
+    nav[aria-label="Pagination Navigation"] .sm\:hidden > a:last-child::after,
+    nav[aria-label="Pagination Navigation"] .sm\:hidden > span:last-child::after {
+        content: "ถัดไป »";
+        font-size: 14px;
+        font-weight: 600;
+    }
+</style>
 <x-app-layout>
     <main class="flex-1 overflow-x-hidden overflow-y-auto">
         <div class="container mx-auto px-6 py-6">
@@ -9,8 +31,8 @@
                             d="M12 8c-1.657 0-3 1.343-3 3v1c0 1.657 1.343 3 3 3s3-1.343 3-3v-1c0-1.657-1.343-3-3-3z" />
                         <path stroke-linecap="round" stroke-linejoin="round"
                             d="M12 2v2m0 16v2m8-10h2M2 12H4m15.364-7.364l1.414 1.414M4.222 19.778l1.414-1.414m12.728 0l1.414 1.414M4.222 4.222l1.414 1.414" />
-                    </svg>
-                    ขึ้นทะเบียนสินค้าใหม่
+                    </svg> 
+                    ขึ้นทะเบียนใหม่
                 </span>
             </h1>
 
@@ -82,10 +104,11 @@
 
             {{-- 1 --}}
 
-            <div class="flex flex-col sm:flex-row justify-between items-center mx-3 mb-2">
-                <form action="{{ route('newregis.index') }}" method="GET" class="flex items-center gap-2 mb-2">
+            <div class="hidden lg:flex flex-col sm:flex-row justify-between items-center mx-3 mb-2">
+                <form id="filterForm" action="{{ route('newregis.index') }}" method="GET" data-filter-form
+                    class="flex items-center gap-2 mb-2">
                     <div class="relative flex-grow min-w-[150px]">
-                        <label for="search_query" class="mx-3 text-base block text-gray-700 mb-1 mt-3">ค้นหาชื่อ</label>
+                        <label for="search_query" class="mx-3 text-base block text-gray-700 mb-1 mt-3">ค้นหา</label>
                         <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none mt-9">
                             <svg class="w-5 h-5 text-gray-400" fill="none" stroke="currentColor" stroke-width="2"
                                 viewBox="0 0 24 24">
@@ -94,24 +117,33 @@
                             </svg>
                         </div>
                         <input type="text" id="search_query" name="search"
-                            placeholder="ชื่อสามัญ /ชื่อการค้า /เลขที่ทะเบียน" value="{{ request('search') }}"
-                            class="pl-10 pr-4 py-2 w-[500px] rounded-lg border border-gray-300 focus:outline-none focus:ring-2 focus:ring-purple-600 transition duration-200 ease-in-out text-gray-700 shadow-sm" />
+                            placeholder="ชื่อวัตถุอันตราย /ชื่อการค้า" value="{{ request('search') }}"
+                            class="pl-10 pr-4 py-2 w-[500px] rounded-lg border border-gray-300 focus:outline-none focus:ring-2 focus:ring-purple-600 transition duration-200 ease-in-out text-gray-700 shadow-sm"
+                            style="width:100%" />
                         {{-- class="pl-10 pr-4 py-2 w-96 rounded-lg border border-gray-300 focus:outline-none focus:ring-2 focus:ring-purple-600 transition duration-200 ease-in-out text-gray-700 shadow-sm" /> --}}
                     </div>
+                    {{-- วันที่เริ่ม --}}
                     <div class="flex-grow min-w-[180px]">
                         <label for="expiry_date_from"
                             class="mx-3 text-base block text-gray-700 mb-1 mt-3">วันที่เริ่ม</label>
                         <input id="expiry_date_from"
-                            class="px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-600 focus:border-transparent transition duration-200 ease-in-out text-gray-500 text-base shadow-sm w-full"
-                            type="date" name="expiry_date_from" value="{{ request('expiry_date_from') }}" />
+                            class="date-th px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-600 focus:border-transparent transition duration-200 ease-in-out text-gray-500 text-base shadow-sm w-full"
+                            type="text" name="expiry_date_from" value="{{ request('expiry_date_from') }}"
+                            placeholder="วว/ดด/ปปปป" autocomplete="off" autocorrect="off" autocapitalize="off"
+                            spellcheck="false" />
                     </div>
+
+                    {{-- วันที่สิ้นสุด --}}
                     <div class="flex-grow min-w-[180px]">
                         <label for="expiry_date_to"
                             class="mx-3 text-base block text-gray-700 mb-1 mt-3">วันที่สิ้นสุด</label>
                         <input id="expiry_date_to"
-                            class="px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-600 focus:border-transparent transition duration-200 ease-in-out text-gray-500 text-base shadow-sm w-full"
-                            type="date" name="expiry_date_to" value="{{ request('expiry_date_to') }}" />
+                            class="date-th px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-600 focus:border-transparent transition duration-200 ease-in-out text-gray-500 text-base shadow-sm w-full"
+                            type="text" name="expiry_date_to" value="{{ request('expiry_date_to') }}"
+                            placeholder="วว/ดด/ปปปป" autocomplete="off" autocorrect="off" autocapitalize="off"
+                            spellcheck="false" />
                     </div>
+
                     <div class="flex gap-3 mt-10">
                         <button type="submit"
                             class="bg-gradient-to-r from-blue-500 to-blue-500 hover:from-blue-600 hover:to-indigo-700 text-white font-semibold px-6 py-2 rounded-lg shadow-md transform hover:scale-105 transition duration-200 ease-in-out focus:outline-none focus:ring-2 focus:ring-blue-600 focus:ring-opacity-50">
@@ -143,35 +175,117 @@
                     </a>
                 @endcan
             </div>
+            <div class="lg:hidden mb-4">
+                <form action="{{ route('newregis.index') }}" method="GET" data-filter-form
+                    class="bg-white border border-gray-100 rounded-2xl shadow-sm p-4">
+                    <div class="grid grid-cols-1 gap-3">
+                        <div class="min-w-0">
+                            <label for="mobile_search_query" class="block text-sm font-semibold text-gray-700 mb-1">
+                                ค้นหา
+                            </label>
+                            <div class="relative">
+                                <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                                    <svg class="w-5 h-5 text-gray-400" fill="none" stroke="currentColor" stroke-width="2"
+                                        viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round"
+                                            d="m21 21-5.197-5.197m0 0A7.5 7.5 0 1 0 5.196 5.196a7.5 7.5 0 0 0 10.607 10.607Z" />
+                                    </svg>
+                                </div>
+                                <input type="text" id="mobile_search_query" name="search"
+                                    placeholder="ชื่อวัตถุอันตราย / ชื่อการค้า" value="{{ request('search') }}"
+                                    class="w-full pl-10 pr-4 py-3 rounded-xl border border-gray-300 focus:outline-none focus:ring-2 focus:ring-blue-500 text-gray-700 shadow-sm" />
+                            </div>
+                        </div>
+
+                        <div class="min-w-0">
+                            <label for="mobile_expiry_date_from" class="block text-sm font-semibold text-gray-700 mb-1">
+                                วันที่เริ่ม
+                            </label>
+                            <input id="mobile_expiry_date_from"
+                                class="date-th w-full px-4 py-3 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 text-gray-700 shadow-sm"
+                                type="text" name="expiry_date_from" value="{{ request('expiry_date_from') }}"
+                                placeholder="วว/ดด/ปปปป" autocomplete="off" autocorrect="off" autocapitalize="off"
+                                spellcheck="false" />
+                        </div>
+
+                        <div class="min-w-0">
+                            <label for="mobile_expiry_date_to" class="block text-sm font-semibold text-gray-700 mb-1">
+                                วันที่สิ้นสุด
+                            </label>
+                            <input id="mobile_expiry_date_to"
+                                class="date-th w-full px-4 py-3 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 text-gray-700 shadow-sm"
+                                type="text" name="expiry_date_to" value="{{ request('expiry_date_to') }}"
+                                placeholder="วว/ดด/ปปปป" autocomplete="off" autocorrect="off" autocapitalize="off"
+                                spellcheck="false" />
+                        </div>
+
+                        <div class="grid grid-cols-2 gap-2">
+                            <button type="submit"
+                                class="w-full inline-flex items-center justify-center gap-2 bg-blue-600 hover:bg-blue-700 text-white font-semibold px-5 py-3 rounded-xl shadow-sm active:scale-95 transition">
+                                ค้นหา
+                            </button>
+                            @if (request('search') || request('expiry_date_from') || request('expiry_date_to') || request('status_filter'))
+                                <a href="{{ route('newregis.index') }}"
+                                    class="w-full inline-flex items-center justify-center gap-2 bg-gray-100 hover:bg-gray-200 text-gray-700 font-semibold px-5 py-3 rounded-xl border border-gray-200 shadow-sm active:scale-95 transition">
+                                    ล้าง
+                                </a>
+                            @endif
+                        </div>
+                    </div>
+
+                    @can('RegisterNew create')
+                        <a href="{{ route('newregis.create') }}"
+                            class="mt-3 w-full inline-flex items-center justify-center rounded-xl bg-blue-600 px-5 py-3 font-semibold text-white shadow-sm active:scale-95 transition">
+                            + เพิ่มข้อมูล
+                        </a>
+                    @endcan
+                </form>
+            </div>
             {{-- 1 --}}
-            <div class="bg-white rounded-2xl overflow-hidden border border-gray-200">
+            <div class="hidden lg:block bg-white rounded-2xl overflow-hidden border border-gray-200">
                 <div class="overflow-x-auto">
-                    <table class="min-w-full bg-white">
+                    <table class="min-w-[1720px] table-fixed bg-white">
+                        <colgroup>
+                            <col class="w-20">
+                            <col class="w-48">
+                            <col class="w-56">
+                            <col class="w-52">
+                            <col class="w-52">
+                            <col class="w-52">
+                            <col class="w-36">
+                            <col class="w-44">
+                            <col class="w-36">
+                            <col class="w-32">
+                        </colgroup>
                         <thead>
                             <tr class="bg-indigo-600 text-white text-left">
-                                <th class="py-4 px-8 rounded-tl-2xl">ลำดับ</th>
-                                <th class="py-4 px-8">ชื่อการค้า</th>
-                                <th class="py-4 px-8">ชื่อสามัญ</th>
-                                <th class="py-4 px-8">เลขที่ทะเบียน</th>
-                                <th class="py-4 px-8">วันที่ขอขึ้นทะเบียน</th>
-                                <th class="py-4 px-8">สถานะความคืบหน้า</th>
+                                <th class="py-4 px-4 rounded-tl-2xl text-center">ลำดับ</th>
+                                <th class="py-4 px-4">ชื่อการค้า</th>
+                                <th class="py-4 px-4">ชื่อวัตถุอันตราย (อังกฤษ)</th>
+                                <th class="py-4 px-4">เปอร์เซ็นต์และสูตร</th>
+                                <th class="py-4 px-4">บริษัทที่ขึ้นทะเบียน</th>
+                                <th class="py-4 px-4">ชื่อผู้จำหน่าย</th>
+                                <th class="py-4 px-4 text-center">วันที่ยื่นคำขอ</th>
+                                <th class="py-4 px-4 text-center">สถานะความคืบหน้า</th>
                                 <th class="py-4 px-4 text-center">สถานะ</th>
-                                <th class="py-4 px-8 rounded-tr-2xl text-center">รายละเอียด</th>
+                                <th class="py-4 px-4 rounded-tr-2xl text-center">รายละเอียด</th>
                             </tr>
                         </thead>
                         <tbody>
                             @forelse ($paginatedProducts as $index => $product)
                                 <tr class="border-b hover:bg-indigo-50 transition">
-                                    <td class="py-4 px-8 font-semibold text-gray-700">
+                                    <td class="py-4 px-4 font-semibold text-center text-gray-700">
                                         {{ ($paginatedProducts->currentPage() - 1) * $paginatedProducts->perPage() + $index + 1 }}
                                     </td>
-                                    <td class="py-4 px-8">{{ $product->trade_name ?? '' }}</td>
-                                    <td class="py-4 px-8">{{ $product->chemical_name_th ?? '' }}</td>
-                                    <td class="py-4 px-8">{{ $product->registration_number ?? '' }}</td>
-                                    <td class="py-4 px-8">
-                                        {{ \Carbon\Carbon::parse($product->date_submit_request)->addYears(543)->format('d/m/Y') }}
+                                    <td class="py-4 px-4 break-words">{{ $product->trade_name ?? '' }}</td>
+                                    <td class="py-4 px-4 break-words">{{ $product->chemical_name_en ?? '' }}</td>
+                                    <td class="py-4 px-4 break-words">{{ $product->composition ?? '' }}</td>
+                                    <td class="py-4 px-4 break-words">{{ $product->registrant ?? '' }}</td>
+                                    <td class="py-4 px-4 break-words">{{ $product->distributor ?? '' }}</td>
+                                    <td class="py-4 px-4 text-center whitespace-nowrap">
+                                        {{ $product->date_submit_request ? \Carbon\Carbon::parse($product->date_submit_request)->addYears(543)->format('d/m/Y') : '' }}
                                     </td>
-                                    <td class="py-4 px-8">
+                                    <td class="py-4 px-4">
                                         @php
                                             $stepTitles = [
                                                 1 => 'คณะ PDC อนุมัติให้ดำเนินการขึ้นทะเบียน',
@@ -184,59 +298,117 @@
                                                 8 => 'ยื่นขอออกทะเบียน',
                                             ];
 
+                                            // New logic per requirement:
+                                            // 1) Prefer the latest step that has at least one checked item.
+                                            // 2) If no steps have any checked items but some steps are fully completed, show the latest fully-completed step.
+                                            // 3) Otherwise default to step 1.
+
                                             $show_step_number = 0;
-                                            $number_step_number = 0;
-                                            // $isPlanNone = 0;
-                                            if (isset($product->step_summary[$product->current_step_number])) {
-                                                $summary = $product->step_summary[$product->current_step_number];
-                                                if ($summary->step_number == 1) {
-                                                    $number_step_number = 1;
-                                                    if ($summary->unchecked_count >= 12) {
+                                            $number_step_number = 1;
+
+                                            // prepare arrays with computed counts per step
+                                            $stepsInfo = [];
+                                            for ($i = 1; $i <= 8; $i++) {
+                                                $summary = $product->step_summary[$i] ?? null;
+                                                $totalInStep = 0;
+                                                $unchecked = 0;
+                                                if ($summary) {
+                                                    $totalInStep = is_numeric($summary->last_index) ? ($summary->last_index + 1) : 0;
+                                                    $unchecked = (int) $summary->unchecked_count;
+                                                }
+                                                $checked = $totalInStep - $unchecked;
+                                                $stepsInfo[$i] = [
+                                                    'summary' => $summary,
+                                                    'total' => $totalInStep,
+                                                    'unchecked' => $unchecked,
+                                                    'checked' => $checked,
+                                                ];
+                                            }
+
+                                            // find latest step that has any checked items
+                                            $lastCheckedStep = 0;
+                                            for ($i = 1; $i <= 8; $i++) {
+                                                if ($stepsInfo[$i]['checked'] > 0) {
+                                                    $lastCheckedStep = $i;
+                                                }
+                                            }
+
+                                            if ($lastCheckedStep > 0) {
+                                                $displayStep = $lastCheckedStep;
+                                            } else {
+                                                // no step has any checked items -> check for latest fully-completed step
+                                                $lastFullyCompleted = 0;
+                                                for ($i = 1; $i <= 8; $i++) {
+                                                    if ($stepsInfo[$i]['total'] > 0 && $stepsInfo[$i]['unchecked'] == 0) {
+                                                        $lastFullyCompleted = $i;
+                                                    }
+                                                }
+                                                if ($lastFullyCompleted > 0) {
+                                                    $displayStep = $lastFullyCompleted;
+                                                } else {
+                                                    $displayStep = 1;
+                                                }
+                                            }
+
+                                            $number_step_number = $displayStep;
+
+                                            // Map displayStep to percentage using the same rules as elsewhere
+                                            $summaryForDisplay = $product->step_summary[$displayStep] ?? null;
+                                            $uncheckedForDisplay = $summaryForDisplay->unchecked_count ?? null;
+
+                                            // helper to detect isPlanNone (keeps original behavior)
+                                            $isPlanNone = $product->isPlanNone ?? 0;
+
+                                            switch ($displayStep) {
+                                                case 1:
+                                                    if ($summaryForDisplay && $uncheckedForDisplay >= 12) {
                                                         $show_step_number = 0;
                                                     } else {
                                                         $show_step_number = 12.5;
                                                     }
-                                                } elseif ($summary->step_number == 2) {
-                                                    $number_step_number = 2;
+                                                    break;
+                                                case 2:
                                                     $show_step_number = 25;
-                                                } elseif ($summary->step_number == 3) {
-                                                    $number_step_number = 3;
+                                                    break;
+                                                case 3:
                                                     $show_step_number = 37.5;
-                                                } elseif ($summary->step_number == 4) {
-                                                    if ($summary->unchecked_count == 1 && $product->isPlanNone == 1) {
+                                                    break;
+                                                case 4:
+                                                    if ($summaryForDisplay && $uncheckedForDisplay == 1 && $isPlanNone == 1) {
                                                         $number_step_number = 5;
                                                         $show_step_number = 62.5;
                                                     } else {
-                                                        $number_step_number = 4;
                                                         $show_step_number = 50;
                                                     }
-                                                } elseif ($summary->step_number == 5) {
-                                                    if ($summary->unchecked_count == 2 && $product->isPlanNone == 1) {
+                                                    break;
+                                                case 5:
+                                                    if ($summaryForDisplay && $uncheckedForDisplay == 2 && $isPlanNone == 1) {
                                                         $number_step_number = 6;
                                                         $show_step_number = 75;
                                                     } else {
-                                                        $number_step_number = 5;
                                                         $show_step_number = 62.5;
                                                     }
-                                                } elseif ($summary->step_number == 6) {
-                                                    if ($summary->unchecked_count == 2 && $product->isPlanNone == 1) {
+                                                    break;
+                                                case 6:
+                                                    if ($summaryForDisplay && $uncheckedForDisplay == 2 && $isPlanNone == 1) {
                                                         $number_step_number = 7;
                                                         $show_step_number = 87.5;
                                                     } else {
-                                                        $number_step_number = 6;
                                                         $show_step_number = 75;
                                                     }
-                                                } elseif ($summary->step_number == 7) {
-                                                    $number_step_number = 7;
+                                                    break;
+                                                case 7:
                                                     $show_step_number = 87.5;
-                                                } else {
-                                                    $number_step_number = 8;
-                                                    if ($summary->unchecked_count == 0) {
+                                                    break;
+                                                case 8:
+                                                    if ($summaryForDisplay && $summaryForDisplay->unchecked_count == 0) {
                                                         $show_step_number = 100;
                                                     } else {
                                                         $show_step_number = 90;
                                                     }
-                                                }
+                                                    break;
+                                                default:
+                                                    $show_step_number = 0;
                                             }
 
                                         @endphp
@@ -275,7 +447,7 @@
                                             {{ number_format($show_step_number, 1) }}%
                                         </div>
                                     </td>
-                                    <td class="py-4 px-8">
+                                    <td class="py-8 px-4 text-center">
                                         @if ($product->progress >= 100)
                                             @php
                                                 $statusClass = '';
@@ -283,13 +455,13 @@
 
                                                 if ($statusText == 'หมดอายุ') {
                                                     $statusClass =
-                                                        'inline-block rounded-full px-3 py-1 font-semibold text-white bg-red-500';
-                                                } elseif ($statusText == 'ใกล้หมดอายุ') {
+                                                        'inline-flex w-24 justify-center rounded-full px-3 py-1 font-semibold text-white bg-red-500';
+                                                } elseif ($statusText == 'ใกล้หมด') {
                                                     $statusClass =
-                                                        'inline-block rounded-full px-3 py-1 font-semibold text-gray-600 bg-yellow-300';
+                                                        'inline-flex w-24 justify-center rounded-full px-3 py-1 font-semibold text-gray-600 bg-yellow-300';
                                                 } else {
                                                     $statusClass =
-                                                        'inline-block rounded-full px-3 py-1 font-semibold text-white bg-green-500'; // สถานะปกติ เช่น 'ใช้งานอยู่'
+                                                        'inline-flex w-24 justify-center rounded-full px-3 py-1 font-semibold text-white bg-green-500'; // สถานะปกติ เช่น 'ใช้งานอยู่'
                                                 }
                                             @endphp
                                             <span class="{{ $statusClass }}">
@@ -298,12 +470,12 @@
                                         @endif
                                         @if ($product->progress < 100)
                                             <span
-                                                class="inline-block rounded-full px-3 py-1 font-semibold text-white bg-blue-500">
+                                                class="inline-flex w-24 justify-center rounded-full px-3 py-1 font-semibold text-white bg-blue-500" style="font-size: 0.75rem;">
                                                 {{ 'ขึ้นทะเบียนใหม่' }}
                                             </span>
                                         @endif
                                     </td>
-                                    <td class="py-4 px-12 mx-auto">
+                                    <td class="py-4 px-4 mx-auto">
                                         {{-- ปุ่มดูรายละเอียด --}}
                                         <div class="flex items-center gap-3 justify-center">
                                             @can('RegisterNew read')
@@ -344,7 +516,24 @@
                                                         ->exists();
                                                 @endphp
 
-                                                @if ($incomplete || auth()->user()->hasRole('admin') || auth()->user()->hasRole('manager'))
+                                                {{-- @php
+                                                    Log::info('Checking edit button visibility:', [
+                                                        'product_id' => $product->id,
+                                                        'user_id' => auth()->id(),
+                                                        'user_department' => auth()->user()->department,
+                                                        'is_incomplete' => $incomplete,
+                                                        'has_admin_role' => auth()->user()->hasRole('admin'),
+                                                        'has_manager_role' => auth()->user()->hasRole('manager'),
+                                                    ]);
+                                                @endphp --}}
+
+                                                @if (
+                                                    $incomplete ||
+                                                        auth()->user()->hasRole('admin') ||
+                                                        auth()->user()->hasRole('manager') ||
+                                                        auth()->user()->department == 'Registration')
+                                                    {{-- auth()->id() == 44 ||
+                                                        auth()->id() == 8) --}}
                                                     <a href="{{ route('newregis.edit', $product->id) }}"
                                                         class="inline-flex items-center justify-center p-2 rounded-full text-white bg-yellow-500 hover:bg-yellow-600 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 transition-all duration-200"
                                                         title="แก้ไข">
@@ -411,12 +600,301 @@
                 </div>
                 <div class="px-8 py-6 bg-white border-t border-gray-100 rounded-b-2xl">
                     {{-- เปลี่ยนตัวแปรตรงนี้ด้วย --}}
-                    {{ $paginatedProducts->links() }}
+                    {{ $paginatedProducts->appends(request()->query())->links() }}
+                </div>
+            </div>
+
+            {{-- Mobile Card List --}}
+            <div class="lg:hidden space-y-4">
+                @forelse ($paginatedProducts as $index => $product)
+                    @php
+                        $displayStep = 1;
+                        $mobileStepsInfo = [];
+
+                        for ($i = 1; $i <= 8; $i++) {
+                            $summary = $product->step_summary[$i] ?? null;
+                            $totalInStep = 0;
+                            $unchecked = 0;
+
+                            if ($summary) {
+                                $totalInStep = is_numeric($summary->last_index) ? ($summary->last_index + 1) : 0;
+                                $unchecked = (int) $summary->unchecked_count;
+                            }
+
+                            $mobileStepsInfo[$i] = [
+                                'summary' => $summary,
+                                'total' => $totalInStep,
+                                'unchecked' => $unchecked,
+                                'checked' => $totalInStep - $unchecked,
+                            ];
+                        }
+
+                        $lastCheckedStep = 0;
+                        for ($i = 1; $i <= 8; $i++) {
+                            if ($mobileStepsInfo[$i]['checked'] > 0) {
+                                $lastCheckedStep = $i;
+                            }
+                        }
+
+                        if ($lastCheckedStep > 0) {
+                            $displayStep = $lastCheckedStep;
+                        } else {
+                            $lastFullyCompleted = 0;
+                            for ($i = 1; $i <= 8; $i++) {
+                                if ($mobileStepsInfo[$i]['total'] > 0 && $mobileStepsInfo[$i]['unchecked'] == 0) {
+                                    $lastFullyCompleted = $i;
+                                }
+                            }
+                            $displayStep = $lastFullyCompleted > 0 ? $lastFullyCompleted : 1;
+                        }
+
+                        $summaryForDisplay = $product->step_summary[$displayStep] ?? null;
+                        $uncheckedForDisplay = $summaryForDisplay->unchecked_count ?? null;
+                        $isPlanNone = $product->isPlanNone ?? 0;
+
+                        switch ($displayStep) {
+                            case 1:
+                                $progressValue = $summaryForDisplay && $uncheckedForDisplay >= 12 ? 0 : 12.5;
+                                break;
+                            case 2:
+                                $progressValue = 25;
+                                break;
+                            case 3:
+                                $progressValue = 37.5;
+                                break;
+                            case 4:
+                                $progressValue = $summaryForDisplay && $uncheckedForDisplay == 1 && $isPlanNone == 1 ? 62.5 : 50;
+                                break;
+                            case 5:
+                                $progressValue = $summaryForDisplay && $uncheckedForDisplay == 2 && $isPlanNone == 1 ? 75 : 62.5;
+                                break;
+                            case 6:
+                                $progressValue = $summaryForDisplay && $uncheckedForDisplay == 2 && $isPlanNone == 1 ? 87.5 : 75;
+                                break;
+                            case 7:
+                                $progressValue = 87.5;
+                                break;
+                            case 8:
+                                $progressValue = $summaryForDisplay && $summaryForDisplay->unchecked_count == 0 ? 100 : 90;
+                                break;
+                            default:
+                                $progressValue = 0;
+                        }
+
+                        $statusText = $progressValue >= 100 ? ($product->status ?? 'สำเร็จ') : 'New';
+                        $statusClass = $progressValue >= 100
+                            ? 'bg-green-100 text-green-700 border border-green-200'
+                            : 'bg-blue-100 text-blue-700 border border-blue-200';
+                    @endphp
+
+                    <div class="bg-white rounded-2xl shadow-sm border border-gray-100 p-4 active:scale-[0.99] transition">
+                        <div class="flex items-start justify-between gap-3 mb-3">
+                            <div class="min-w-0">
+                                <div class="text-xs text-gray-400 mb-1">
+                                    #{{ ($paginatedProducts->currentPage() - 1) * $paginatedProducts->perPage() + $index + 1 }}
+                                </div>
+                                <h3 class="text-base font-bold text-gray-800 leading-snug line-clamp-2">
+                                    {{ $product->trade_name ?: '-' }}
+                                </h3>
+                                <p class="text-sm text-gray-500 mt-1 line-clamp-1">
+                                    {{ $product->chemical_name_en ?: '-' }}
+                                </p>
+                            </div>
+
+                            <span class="shrink-0 rounded-full px-3 py-1 text-xs font-bold {{ $statusClass }}">
+                                {{ $statusText }}
+                            </span>
+                        </div>
+
+                        <div class="grid grid-cols-1 gap-2 text-sm">
+                            <div class="flex justify-between gap-3 border-t pt-3">
+                                <span class="text-gray-400">ผู้ขึ้นทะเบียน</span>
+                                <span class="text-gray-700 font-medium text-right">
+                                    {{ $product->registrant ?: '-' }}
+                                </span>
+                            </div>
+
+                            <div class="flex justify-between gap-3">
+                                <span class="text-gray-400">ผู้จำหน่าย</span>
+                                <span class="text-gray-700 font-medium text-right">
+                                    {{ $product->distributor ?: '-' }}
+                                </span>
+                            </div>
+
+                            <div class="flex justify-between gap-3">
+                                <span class="text-gray-400">วันที่ยื่นคำขอ</span>
+                                <span class="text-gray-700 font-semibold text-right">
+                                    {{ $product->date_submit_request ? \Carbon\Carbon::parse($product->date_submit_request)->addYears(543)->format('d/m/Y') : '-' }}
+                                </span>
+                            </div>
+
+                            <div class="pt-2">
+                                <div class="flex items-center justify-between text-xs text-gray-500 mb-1">
+                                    <span>ความคืบหน้า</span>
+                                    <span>{{ number_format($progressValue, 1) }}%</span>
+                                </div>
+                                <div class="w-full bg-gray-200 rounded-full h-2.5 overflow-hidden">
+                                    <div class="h-2.5 bg-green-500" style="width: {{ min($progressValue, 100) }}%;"></div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="grid grid-cols-3 gap-2 mt-4">
+                            @can('RegisterNew read')
+                                <a href="{{ route('newregis.show', $product->id) }}"
+                                    class="flex items-center justify-center gap-1 rounded-xl bg-green-500 px-3 py-2.5 text-sm font-bold text-white active:scale-95 transition">
+                                    ดู
+                                </a>
+                            @endcan
+
+                            @can('RegisterNew update')
+                                @php
+                                    $userDept = auth()->user()->department;
+                                    $deptMap = [
+                                        'InternationalProcurement' => 'จัดซื้อต่างประเทศ',
+                                        'SalesDepartment' => 'ฝ่ายขาย',
+                                        'ResearchAndDevelopment' => 'วิจัยและพัฒนา',
+                                        'Academic' => 'แผนกวิชาการ',
+                                        'Registration' => 'แผนกทะเบียน',
+                                    ];
+                                    $mappedDept = $deptMap[$userDept] ?? $userDept;
+                                    $incomplete = \App\Models\DrugProgressStep::where('chemical_registrations_id', $product->id)
+                                        ->where('department', $mappedDept)
+                                        ->whereNull('checked_at')
+                                        ->exists();
+                                @endphp
+
+                                @if ($incomplete || auth()->user()->hasRole('admin') || auth()->user()->hasRole('manager') || auth()->user()->department == 'Registration')
+                                    <a href="{{ route('newregis.edit', $product->id) }}"
+                                        class="flex items-center justify-center gap-1 rounded-xl bg-yellow-500 px-3 py-2.5 text-sm font-bold text-white active:scale-95 transition">
+                                        แก้ไข
+                                    </a>
+                                @endif
+                            @endcan
+
+                            @can('RegisterNew delete')
+                                <button onclick="confirmDelete({{ $product->id }})"
+                                    class="flex items-center justify-center gap-1 rounded-xl bg-red-500 px-3 py-2.5 text-sm font-bold text-white active:scale-95 transition">
+                                    ลบ
+                                </button>
+                                <form id="delete-form-mobile-{{ $product->id }}" action="{{ route('newregis.destroy', $product->id) }}"
+                                    method="POST" style="display: none;">
+                                    @csrf
+                                    @method('delete')
+                                </form>
+                            @endcan
+                        </div>
+                    </div>
+                @empty
+                    <div class="bg-white rounded-2xl border border-dashed border-gray-300 p-8 text-center">
+                        <p class="text-gray-400 font-medium">ไม่มีขึ้นทะเบียนใหม่</p>
+                    </div>
+                @endforelse
+
+                <div class="px-3 sm:px-6 lg:px-8 py-4 sm:py-6 bg-white border-t border-gray-100 rounded-b-2xl">
+                    {{ $paginatedProducts->appends(request()->query())->onEachSide(1)->links() }}
                 </div>
             </div>
 
         </div>
     </main>
+
+    <script src="https://cdn.jsdelivr.net/npm/flatpickr"></script>
+    <script src="https://npmcdn.com/flatpickr/dist/l10n/th.js"></script>
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            // --- Helper: แปลง yyyy-mm-dd -> dd/mm/yyyy (พ.ศ.) เพื่อแสดงผลเริ่มต้น ---
+            function adToBeDisplay(isoStr) {
+                // รับค่าเป็น 'YYYY-MM-DD' -> คืน 'dd/mm/yyyy(พ.ศ.)'
+                if (!isoStr || !/^\d{4}-\d{2}-\d{2}$/.test(isoStr)) return null;
+                const [y, m, d] = isoStr.split('-').map(n => parseInt(n, 10));
+                if (!y || !m || !d) return null;
+                const be = y + 543;
+                return String(d).padStart(2, '0') + '/' + String(m).padStart(2, '0') + '/' + be;
+            }
+
+            // --- ถ้าค่าที่มากับ request เป็น ค.ศ. iso -> เปลี่ยนเป็น พ.ศ. แสดงผล ---
+            document.querySelectorAll(".date-th").forEach(el => {
+                const v = (el.value || '').trim();
+
+                // case: yyyy-mm-dd จาก query string เดิม
+                const beDisplay = adToBeDisplay(v);
+                if (beDisplay) {
+                    el.value = beDisplay;
+                } else if (/^\d{4}\/\d{2}\/\d{2}$/.test(v)) {
+                    // ถ้าติดมาผิดรูปแบบ (yyyy/mm/dd) ก็ปล่อยไว้ หรือปรับเพิ่มตามต้องการ
+                }
+                // ถ้าเป็น dd/mm/yyyy อยู่แล้วก็ไม่เปลี่ยน
+            });
+
+            // --- ติดตั้ง flatpickr แบบหน้าแก้ไข ---
+            flatpickr(".date-th", {
+                allowInput: true,
+                locale: "th",
+                dateFormat: "d/m/Y", // ใช้ dd/mm/yyyy
+                parseDate: (datestr, format) => {
+                    if (!datestr) return null;
+                    // รองรับ dd/mm/yyyy ทั้ง ค.ศ./พ.ศ.
+                    const m = datestr.match(/^(\d{1,2})\/(\d{1,2})\/(\d{4})$/);
+                    if (m) {
+                        let dd = parseInt(m[1], 10);
+                        let mm = parseInt(m[2], 10);
+                        let yyyy = parseInt(m[3], 10);
+                        if (yyyy > 2400) yyyy -= 543; // ถ้าเป็น พ.ศ. -> แปลง ค.ศ.
+                        return new Date(yyyy, mm - 1, dd);
+                    }
+                    // เผื่อกรณีผู้ใช้วางเป็น 'yyyy-mm-dd'
+                    const n = datestr.match(/^(\d{4})-(\d{2})-(\d{2})$/);
+                    if (n) {
+                        return new Date(parseInt(n[1], 10), parseInt(n[2], 10) - 1, parseInt(n[3], 10));
+                    }
+                    return flatpickr.parseDate(datestr, format);
+                },
+                onReady: (selectedDates, dateStr, instance) => showBE(instance),
+                onChange: (selectedDates, dateStr, instance) => showBE(instance),
+                onOpen: (selectedDates, dateStr, instance) => showBE(instance)
+            });
+
+            function showBE(instance) {
+                const sel = instance.selectedDates[0];
+                if (!sel) return;
+                const dd = String(sel.getDate()).padStart(2, "0");
+                const mm = String(sel.getMonth() + 1).padStart(2, "0");
+                const yyyyBE = sel.getFullYear() + 543;
+                instance.input.value = `${dd}/${mm}/${yyyyBE}`;
+            }
+
+            // --- ก่อน submit: แปลง dd/mm/yyyy(พ.ศ.) -> yyyy-mm-dd(ค.ศ.) ---
+            document.querySelectorAll("[data-filter-form]").forEach(form => {
+                form.addEventListener("submit", (e) => {
+                    // If the search input is empty (or only whitespace), disable it so it's not submitted
+                    const searchInput = form.querySelector('input[name="search"]');
+                    if (searchInput) {
+                        const val = (searchInput.value || '').trim();
+                        if (val === '') {
+                            searchInput.disabled = true;
+                        } else {
+                            // trim surrounding whitespace before submit
+                            searchInput.value = val;
+                        }
+                    }
+
+                    form.querySelectorAll(".date-th").forEach(input => {
+                        const v = (input.value || '').trim();
+                        const m = v.match(/^(\d{2})\/(\d{2})\/(\d{4})$/);
+                        if (m) {
+                            let dd = m[1],
+                                mm = m[2],
+                                y = parseInt(m[3], 10);
+                            if (y > 2400) y -= 543; // พ.ศ. -> ค.ศ.
+                            input.value = `${y}-${mm}-${dd}`; // ส่งรูปแบบที่ backend/Query ถนัด
+                        }
+                    });
+                });
+            });
+        });
+    </script>
+
 
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
     <script>
