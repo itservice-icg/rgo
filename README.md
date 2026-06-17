@@ -359,3 +359,13 @@ location = / {
     return 308 /RGO/;
 }
 ```
+
+
+
+composer install
+npm install
+php artisan optimize:clear
+php artisan storage:link
+php artisan migrate
+npm run dev
+php artisan serve --host=127.0.0.1 --port=8000

@@ -443,7 +443,7 @@
                 @endphp
                 <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mt-4">
                         <div class="md:col-span-2">
-                            <label class="mx-3 text-base block text-gray-700 mb-1 mt-3">ทะเบียนนำเข้า ( PDF )</label>
+                            <label class="mx-3 text-base block text-gray-700 mb-1 mt-3">ไฟล์ทะเบียนนำเข้า ( PDF )</label>
                             @canany('import_data_staple create')
                             <input type="file" name="import_registration_documents[]" id="import_registration_documents" multiple
                                 class="w-full p-3 border rounded-full focus:outline-none focus:ring-2 focus:ring-blue-500" />
@@ -513,7 +513,7 @@
                                 </div>
                             @endif
 
-                             <label class="mx-3 text-base block text-gray-700 mb-1 mt-3">ใบอนุญาตนำเข้า( PDF )</label>
+                             <label class="mx-3 text-base block text-gray-700 mb-1 mt-3">ไฟล์ใบอนุญาตนำเข้า( PDF )</label>
                                 @canany('import_data_staple create')
                                 <input type="file" name="import_approval_documents[]" id="import_approval_documents" multiple
                                 class="w-full p-3 border rounded-full focus:outline-none focus:ring-2 focus:ring-blue-500" />
