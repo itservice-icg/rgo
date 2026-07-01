@@ -31,7 +31,7 @@ class ChemicalImportController extends Controller
     {
 
         $query = ChemicalImport::query();
-        $query->with('company');
+        $query->with(['company', 'importerCompany', 'files']);
 
         // ส่วนของการค้นหา (search) - normalize input and compare without spaces, case-insensitive
         if ($request->filled('search')) {

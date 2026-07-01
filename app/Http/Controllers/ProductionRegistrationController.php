@@ -27,7 +27,7 @@ class ProductionRegistrationController extends Controller
     {
 
         $query = ProductionRegistration::query();
-        $query->with('company');
+        $query->with(['company', 'distributorCompany', 'files']);
 
         if ($request->filled('search')) {
             // Normalize: remove whitespace and lowercase the search term for flexible matching
