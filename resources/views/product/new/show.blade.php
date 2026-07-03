@@ -136,7 +136,7 @@
 
 
                 {{-- สถานะความคืบหน้าโดยรวม --}}
-                <div class="grid grid-cols-1 md:grid-cols-2 gap-6 text-lg text-gray-700 mt-6">
+                <!-- <div class="grid grid-cols-1 md:grid-cols-2 gap-6 text-lg text-gray-700 mt-6">
                     <div>
                         <p class="font-semibold text-indigo-600">สถานะความคืบหน้าโดยรวม:</p>
                         <div class="w-full bg-gray-200 rounded-full h-2.5 mt-2">
@@ -151,7 +151,7 @@
                             {{ $drug->progress }}%
                         </div>
                     </div>
-                </div>
+                </div> -->
                 @if ($drug->progress <= 99)
                     <div class="mt-8">
                         @php
