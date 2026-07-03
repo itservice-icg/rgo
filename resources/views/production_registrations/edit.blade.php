@@ -792,14 +792,42 @@
         </script>
     @endif
 
+    @php
+        $pdfWatermarkLogoPath = config('pdf.tiled_watermark.logo_path', 'images/logo.png');
+        $pdfWatermarkLogoPublicRoot = str_replace('\\', '/', public_path());
+        $pdfWatermarkLogoNormalizedPath = str_replace('\\', '/', $pdfWatermarkLogoPath);
+
+        if (filter_var($pdfWatermarkLogoPath, FILTER_VALIDATE_URL)) {
+            $pdfWatermarkLogoUrl = $pdfWatermarkLogoPath;
+        } elseif (strpos($pdfWatermarkLogoNormalizedPath, $pdfWatermarkLogoPublicRoot . '/') === 0) {
+            $pdfWatermarkLogoUrl = rtrim(request()->getBaseUrl(), '/') . '/' . ltrim(substr($pdfWatermarkLogoNormalizedPath, strlen($pdfWatermarkLogoPublicRoot)), '/');
+        } else {
+            $pdfWatermarkLogoUrl = rtrim(request()->getBaseUrl(), '/') . '/' . ltrim(preg_replace('#^/?public/#', '', $pdfWatermarkLogoNormalizedPath), '/');
+        }
+
+        $pdfTiledWatermark = [
+            'enabled' => (bool) config('pdf.tiled_watermark.enabled', true),
+            'color' => (bool) config('pdf.tiled_watermark.color', true),
+            'opacity' => (float) config('pdf.tiled_watermark.opacity', 0.08),
+            'logoUrl' => $pdfWatermarkLogoUrl,
+            'logoSize' => (int) config('pdf.tiled_watermark.logo_size', 120),
+            'gapX' => (int) config('pdf.tiled_watermark.gap_x', 180),
+            'gapY' => (int) config('pdf.tiled_watermark.gap_y', 160),
+            'angle' => (float) config('pdf.tiled_watermark.angle', -30),
+        ];
+    @endphp
+
     <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
     <script>
         document.addEventListener('DOMContentLoaded', () => {
+            const pdfTiledWatermark = @json($pdfTiledWatermark);
             const modal = document.getElementById('productionFileModal');
             const viewer = document.getElementById('productionFileViewer');
             const title = document.getElementById('productionFileModalTitle');
             const closeBtn = document.getElementById('closeProductionFileModal');
             let renderToken = 0;
+            let pdfWatermarkImagePromise = null;
+            let pdfWatermarkGrayscaleImagePromise = null;
 
             if (window.pdfjsLib) {
                 pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js';
@@ -810,6 +838,97 @@
                 modal.classList.add('hidden');
                 document.body.classList.remove('overflow-hidden');
                 viewer.innerHTML = '';
+            }
+
+            function getPdfWatermarkImage() {
+                if (!pdfTiledWatermark.enabled || !pdfTiledWatermark.logoUrl) {
+                    return Promise.resolve(null);
+                }
+
+                if (!pdfWatermarkImagePromise) {
+                    pdfWatermarkImagePromise = new Promise(resolve => {
+                        const image = new Image();
+                        image.crossOrigin = 'anonymous';
+                        image.onload = () => resolve(image);
+                        image.onerror = () => resolve(null);
+                        image.src = pdfTiledWatermark.logoUrl;
+                    });
+                }
+
+                return pdfWatermarkImagePromise;
+            }
+
+            async function getPdfWatermarkDrawable() {
+                const image = await getPdfWatermarkImage();
+
+                if (!image || pdfTiledWatermark.color) {
+                    return image;
+                }
+
+                if (!pdfWatermarkGrayscaleImagePromise) {
+                    pdfWatermarkGrayscaleImagePromise = new Promise(resolve => {
+                        const canvas = document.createElement('canvas');
+                        const context = canvas.getContext('2d');
+                        const width = image.naturalWidth || image.width;
+                        const height = image.naturalHeight || image.height;
+
+                        canvas.width = width;
+                        canvas.height = height;
+                        context.drawImage(image, 0, 0, width, height);
+
+                        const imageData = context.getImageData(0, 0, width, height);
+                        const data = imageData.data;
+
+                        for (let i = 0; i < data.length; i += 4) {
+                            const gray = data[i] * 0.299 + data[i + 1] * 0.587 + data[i + 2] * 0.114;
+                            data[i] = gray;
+                            data[i + 1] = gray;
+                            data[i + 2] = gray;
+                        }
+
+                        context.putImageData(imageData, 0, 0);
+
+                        const grayscaleImage = new Image();
+                        grayscaleImage.onload = () => resolve(grayscaleImage);
+                        grayscaleImage.onerror = () => resolve(image);
+                        grayscaleImage.src = canvas.toDataURL('image/png');
+                    });
+                }
+
+                return pdfWatermarkGrayscaleImagePromise;
+            }
+
+            async function drawTiledPdfWatermark(context, canvas, outputScale = 1) {
+                if (!pdfTiledWatermark.enabled) return;
+
+                const watermarkImage = await getPdfWatermarkDrawable();
+                if (!watermarkImage) return;
+
+                const maxLogoSize = Number(pdfTiledWatermark.logoSize) || 120;
+                const imageWidth = watermarkImage.naturalWidth || watermarkImage.width || maxLogoSize;
+                const imageHeight = watermarkImage.naturalHeight || watermarkImage.height || maxLogoSize;
+                const ratio = imageWidth >= imageHeight ? maxLogoSize / imageWidth : maxLogoSize / imageHeight;
+                const logoWidth = imageWidth * ratio;
+                const logoHeight = imageHeight * ratio;
+                const tileWidth = logoWidth + (Number(pdfTiledWatermark.gapX) || 180);
+                const tileHeight = logoHeight + (Number(pdfTiledWatermark.gapY) || 160);
+                const angle = ((Number(pdfTiledWatermark.angle) || 0) * Math.PI) / 180;
+
+                context.save();
+                context.setTransform(outputScale, 0, 0, outputScale, 0, 0);
+                context.globalAlpha = Math.max(0, Math.min(1, Number(pdfTiledWatermark.opacity) || 0.08));
+
+                for (let y = -tileHeight; y < canvas.height / outputScale + tileHeight; y += tileHeight) {
+                    for (let x = -tileWidth; x < canvas.width / outputScale + tileWidth; x += tileWidth) {
+                        context.save();
+                        context.translate(x + logoWidth / 2, y + logoHeight / 2);
+                        context.rotate(angle);
+                        context.drawImage(watermarkImage, -logoWidth / 2, -logoHeight / 2, logoWidth, logoHeight);
+                        context.restore();
+                    }
+                }
+
+                context.restore();
             }
 
             async function renderPdf(url) {
@@ -833,12 +952,17 @@
                         const viewport = page.getViewport({ scale: 1.4 });
                         const canvas = document.createElement('canvas');
                         const context = canvas.getContext('2d');
-                        canvas.width = viewport.width;
-                        canvas.height = viewport.height;
+                        const outputScale = window.devicePixelRatio || 1;
+                        canvas.width = Math.floor(viewport.width * outputScale);
+                        canvas.height = Math.floor(viewport.height * outputScale);
+                        canvas.style.width = `${Math.floor(viewport.width)}px`;
+                        canvas.style.height = `${Math.floor(viewport.height)}px`;
                         canvas.className = 'max-w-full bg-white shadow-md';
+                        context.setTransform(outputScale, 0, 0, outputScale, 0, 0);
                         viewer.appendChild(canvas);
 
                         await page.render({ canvasContext: context, viewport }).promise;
+                        await drawTiledPdfWatermark(context, canvas, outputScale);
                     }
                 } catch (error) {
                     if (token === renderToken) {

@@ -35,8 +35,8 @@ if (! function_exists('pdf_tiled_watermark_config')) {
             // แสดงโลโก้ลายน้ำเป็นสี ถ้าตั้งเป็น false จะแสดงเป็นขาวดำ
             'color' => true,
             // ความโปร่งใสของลายน้ำ ค่าอยู่ระหว่าง 0.01 ถึง 1
-            'opacity' => 0.08,
-            // 'opacity' => 1,
+            // 'opacity' => 0.08,
+            'opacity' => 1,
             // path ของโลโก้ใต้โฟลเดอร์ public
             'logo_path' => 'images/Logo_Inter_Crop_2017.png',
             // ขนาดด้านที่ยาวที่สุดของโลโก้ หน่วยเป็น px โดยยังรักษาสัดส่วนเดิม
