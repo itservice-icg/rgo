@@ -125,6 +125,8 @@ class ChemicalImportController extends Controller
     public function store(Request $request)
     {
         try {
+            $maxFileSizeKilobytes = $this->maxFileSizeKilobytes();
+
             // 1. Validation ข้อมูลจากฟอร์ม
             $validatedData = $request->validate([
                 'company_id' => 'nullable|exists:companies,id', // ตรวจสอบว่า company_id มีอยู่ในตาราง companies
@@ -157,7 +159,7 @@ class ChemicalImportController extends Controller
                 'status_date' => 'nullable|string|max:255',
                 'remarks' => 'nullable|string|max:1000',
                 'image' => 'nullable|image|max:2048', // ตัวอย่าง: อนุญาตเฉพาะไฟล์ภาพ ขนาดไม่เกิน 2MB
-                'document' => 'nullable|file|mimes:pdf,doc,docx|max:5120', // ตัวอย่าง: อนุญาตเฉพาะ PDF, DOC, DOCX ขนาดไม่เกิน 5MB
+                'document' => 'nullable|file|mimes:pdf|mimetypes:application/pdf|max:' . $maxFileSizeKilobytes,
                 'progress' => 'nullable|numeric|min:0|max:100',
                 'sub_progress' => 'nullable|numeric|min:0|max:100',
 
@@ -244,7 +246,10 @@ class ChemicalImportController extends Controller
     {
         $import->load('files');
         $companies = Company::all();
-        return view('import.edit', compact('import', 'companies'));
+        $maxFileColumn = $this->maxFileColumn();
+        $maxFileSizeMegabytes = (int) ($this->maxFileSizeKilobytes() / 1024);
+
+        return view('import.edit', compact('import', 'companies', 'maxFileColumn', 'maxFileSizeMegabytes'));
         // return view('import.edit', compact('import'));
     }
 
@@ -333,6 +338,7 @@ class ChemicalImportController extends Controller
             }
         try {
             $maxFileColumn = $this->maxFileColumn();
+            $maxFileSizeKilobytes = $this->maxFileSizeKilobytes();
 
             $request->merge([
                 'expired_license_date'     => $this->convertDate($request->input('expired_license_date')), // <<== เพิ่มตรงนี้
@@ -376,13 +382,13 @@ class ChemicalImportController extends Controller
                 'status_date' => 'nullable|string|max:255',
                 'remarks' => 'nullable|string|max:1000',
                 'image' => 'nullable|image|max:2048', // optional: 'image' if you want to allow changing image
-                'additional_document' => 'nullable|file|mimes:pdf,doc,docx|max:5120', // legacy single file input
+                'additional_document' => 'nullable|file|mimes:pdf|mimetypes:application/pdf|max:' . $maxFileSizeKilobytes,
                 'additional_documents' => 'nullable|array',
-                'additional_documents.*' => 'file|mimes:pdf,doc,docx|max:5120',
+                'additional_documents.*' => 'file|mimes:pdf|mimetypes:application/pdf|max:' . $maxFileSizeKilobytes,
                 'import_registration_documents' => 'nullable|array|max:' . $maxFileColumn,
-                'import_registration_documents.*' => 'file|mimes:pdf,doc,docx|max:5120',
+                'import_registration_documents.*' => 'file|mimes:pdf|mimetypes:application/pdf|max:' . $maxFileSizeKilobytes,
                 'import_approval_documents' => 'nullable|array|max:' . $maxFileColumn,
-                'import_approval_documents.*' => 'file|mimes:pdf,doc,docx|max:5120',
+                'import_approval_documents.*' => 'file|mimes:pdf|mimetypes:application/pdf|max:' . $maxFileSizeKilobytes,
                 'progress' => 'nullable|numeric|min:0|max:100',
                 'sub_progress' => 'nullable|numeric|min:0|max:100'
                 
@@ -594,6 +600,13 @@ class ChemicalImportController extends Controller
         $value = env('MAX_FILE_COLUM', env('MAX_FILE_COLUMN', 3));
 
         return max(1, (int) $value);
+    }
+
+    private function maxFileSizeKilobytes(): int
+    {
+        $value = env('MAX_FILE_SIZE_MB', 20);
+
+        return max(1, (int) $value) * 1024;
     }
 
     private function uploadedFileCount(Request $request, string $inputName): int

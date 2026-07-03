@@ -113,6 +113,8 @@ class ProductionRegistrationController extends Controller
     public function store(Request $request)
     {
         try {
+            $maxFileSizeKilobytes = $this->maxFileSizeKilobytes();
+
             // 1. Validation ข้อมูลจากฟอร์ม
             $validatedData = $request->validate([
                 'company_id' => 'nullable|exists:companies,id', // ตรวจสอบว่า company_id มีอยู่ในตาราง companies
@@ -145,7 +147,7 @@ class ProductionRegistrationController extends Controller
                 'status_date' => 'nullable|string|max:255',
                 'remarks' => 'nullable|string|max:1000',
                 'image' => 'nullable|image|max:2048', // ตัวอย่าง: อนุญาตเฉพาะไฟล์ภาพ ขนาดไม่เกิน 2MB
-                'document' => 'nullable|file|mimes:pdf,doc,docx|max:5120', // ตัวอย่าง: อนุญาตเฉพาะ PDF, DOC, DOCX ขนาดไม่เกิน 5MB
+                'document' => 'nullable|file|mimes:pdf,doc,docx|max:' . $maxFileSizeKilobytes,
                 'progress' => 'nullable|numeric|min:0|max:100',
                 'sub_progress' => 'nullable|numeric|min:0|max:100',
 
@@ -212,7 +214,10 @@ class ProductionRegistrationController extends Controller
         $companies = Company::all();
         // ถ้าต้องการใช้ชื่อ $import ใน Blade ก็ map เพิ่ม
         $import = $productionRegistration;
-        return view('production_registrations.edit', compact('import', 'companies'));
+        $maxFileColumn = $this->maxFileColumn();
+        $maxFileSizeMegabytes = (int) ($this->maxFileSizeKilobytes() / 1024);
+
+        return view('production_registrations.edit', compact('import', 'companies', 'maxFileColumn', 'maxFileSizeMegabytes'));
     }
 
     public function additionalDocument(ProductionRegistration $productionRegistration)
@@ -278,6 +283,7 @@ class ProductionRegistrationController extends Controller
         // dd( $request->all());
         try {
             $maxFileColumn = $this->maxFileColumn();
+            $maxFileSizeKilobytes = $this->maxFileSizeKilobytes();
 
             $request->merge([
                 'expired_license_date'  => $this->convertDate($request->input('expired_license_date')),
@@ -323,11 +329,11 @@ class ProductionRegistrationController extends Controller
                 'remarks' => 'nullable|string|max:1000',
                 'image' => 'nullable|image|max:2048', // optional: 'image' if you want to allow changing image
                 'additional_document' => 'nullable|array',
-                'additional_document.*' => 'file|mimes:pdf,doc,docx|max:5120',
+                'additional_document.*' => 'file|mimes:pdf,doc,docx|max:' . $maxFileSizeKilobytes,
                 'production_registration_documents' => 'nullable|array|max:' . $maxFileColumn,
-                'production_registration_documents.*' => 'file|mimes:pdf,doc,docx|max:5120',
+                'production_registration_documents.*' => 'file|mimes:pdf,doc,docx|max:' . $maxFileSizeKilobytes,
                 'production_approval_documents' => 'nullable|array|max:' . $maxFileColumn,
-                'production_approval_documents.*' => 'file|mimes:pdf,doc,docx|max:5120',
+                'production_approval_documents.*' => 'file|mimes:pdf,doc,docx|max:' . $maxFileSizeKilobytes,
                 'progress' => 'nullable|numeric|min:0|max:100',
                 'sub_progress' => 'nullable|numeric|min:0|max:100',
                 // หมายเหตุ: สำหรับฟิลด์ที่ไม่จำเป็นต้องเปลี่ยนผ่านฟอร์ม (เช่น created_by, is_deleted) ไม่ต้องใส่ใน validation rules
@@ -482,6 +488,13 @@ class ProductionRegistrationController extends Controller
         $value = env('MAX_FILE_COLUM', env('MAX_FILE_COLUMN', 3));
 
         return max(1, (int) $value);
+    }
+
+    private function maxFileSizeKilobytes(): int
+    {
+        $value = env('MAX_FILE_SIZE_MB', 20);
+
+        return max(1, (int) $value) * 1024;
     }
 
     private function uploadedFileCount(Request $request, string $inputName): int

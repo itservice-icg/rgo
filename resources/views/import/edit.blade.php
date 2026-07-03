@@ -443,14 +443,15 @@
                 @endphp
                 <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mt-4">
                         <div class="md:col-span-2">
-                            <label class="mx-3 text-base block text-gray-700 mb-1 mt-3">ไฟล์ทะเบียนนำเข้า ( PDF )</label>
+                            <label class="mx-3 text-base block text-gray-700 mb-1 mt-3">ไฟล์ทะเบียนนำเข้า ( PDF ) <span style="font-weight: bold;">สูงสุด 3 ไฟล์</span></label>
                             @canany('import_data_staple create')
-                            <input type="file" name="import_registration_documents[]" id="import_registration_documents" multiple
+                            <input type="file" name="import_registration_documents[]" id="import_registration_documents" accept=".pdf,application/pdf" multiple
                                 class="w-full p-3 border rounded-full focus:outline-none focus:ring-2 focus:ring-blue-500" />
                             @else
-                            <input type="file" name="import_registration_documents[]" id="import_registration_documents"
+                            <input type="file" name="import_registration_documents[]" id="import_registration_documents" accept=".pdf,application/pdf"
                                 class="w-full p-3 border rounded-full focus:outline-none focus:ring-2 focus:ring-blue-500" disabled />
                             @endcanany
+                            <p class="text-gray-500 text-xs italic mt-1">รองรับไฟล์ PDF เท่านั้น </p>
                             @error('import_registration_documents')
                                 <p class="text-red-500 text-xs italic mt-1">{{ $message }}</p>
                             @enderror
@@ -513,14 +514,15 @@
                                 </div>
                             @endif
 
-                             <label class="mx-3 text-base block text-gray-700 mb-1 mt-3">ไฟล์ใบอนุญาตนำเข้า( PDF )</label>
+                             <label class="mx-3 text-base block text-gray-700 mb-1 mt-3">ไฟล์ใบอนุญาตนำเข้า( PDF ) <span style="font-weight: bold;">สูงสุด 3 ไฟล์</span></label>
                                 @canany('import_data_staple create')
-                                <input type="file" name="import_approval_documents[]" id="import_approval_documents" multiple
+                                <input type="file" name="import_approval_documents[]" id="import_approval_documents" accept=".pdf,application/pdf" multiple
                                 class="w-full p-3 border rounded-full focus:outline-none focus:ring-2 focus:ring-blue-500" />
                                 @else
-                                <input type="file" name="import_approval_documents[]" id="import_approval_documents"
+                                <input type="file" name="import_approval_documents[]" id="import_approval_documents" accept=".pdf,application/pdf"
                                 class="w-full p-3 border rounded-full focus:outline-none focus:ring-2 focus:ring-blue-500" disabled />
                                 @endcanany
+                            <p class="text-gray-500 text-xs italic mt-1">รองรับไฟล์ PDF เท่านั้น </p>
                             @error('import_approval_documents')
                                 <p class="text-red-500 text-xs italic mt-1">{{ $message }}</p>
                             @enderror
@@ -967,6 +969,74 @@
 
 
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            const maxFiles = @json($maxFileColumn ?? 3);
+            const maxFileSizeMb = @json($maxFileSizeMegabytes ?? 20);
+            const maxFileSizeBytes = maxFileSizeMb * 1024 * 1024;
+            const fileInputs = [
+                {
+                    id: 'import_registration_documents',
+                    existingCount: @json(isset($registrationFiles) ? $registrationFiles->count() : 0),
+                },
+                {
+                    id: 'import_approval_documents',
+                    existingCount: @json(isset($approvalFiles) ? $approvalFiles->count() : 0),
+                },
+            ];
+
+            function showUploadWarning(message) {
+                if (window.Swal) {
+                    Swal.fire({
+                        icon: 'warning',
+                        title: 'ไฟล์ไม่ถูกต้อง',
+                        text: message,
+                        confirmButtonColor: '#3085d6',
+                        confirmButtonText: 'ตกลง'
+                    });
+                    return;
+                }
+
+                alert(message);
+            }
+
+            function isPdfFile(file) {
+                const hasPdfExtension = file.name.toLowerCase().endsWith('.pdf');
+                const hasPdfMimeType = !file.type || file.type === 'application/pdf';
+
+                return hasPdfExtension && hasPdfMimeType;
+            }
+
+            fileInputs.forEach(({ id, existingCount }) => {
+                const input = document.getElementById(id);
+                if (!input) return;
+
+                input.addEventListener('change', () => {
+                    const files = Array.from(input.files || []);
+                    const invalidType = files.find(file => !isPdfFile(file));
+                    const oversized = files.find(file => file.size > maxFileSizeBytes);
+                    const totalFiles = existingCount + files.length;
+
+                    if (invalidType) {
+                        input.value = '';
+                        showUploadWarning('รองรับเฉพาะไฟล์ PDF เท่านั้น');
+                        return;
+                    }
+
+                    if (oversized) {
+                        input.value = '';
+                        showUploadWarning(`ไฟล์ต้องมีขนาดไม่เกิน ${maxFileSizeMb} MB ต่อไฟล์`);
+                        return;
+                    }
+
+                    if (totalFiles > maxFiles) {
+                        input.value = '';
+                        showUploadWarning(`อัปโหลดได้สูงสุด ${maxFiles} ไฟล์ ตอนนี้มีอยู่แล้ว ${existingCount} ไฟล์`);
+                    }
+                });
+            });
+        });
+    </script>
     @if ($errors->has('registration_number'))
         <script>
             Swal.fire({
