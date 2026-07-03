@@ -1,3 +1,60 @@
+<style>
+    .document-pdf-toolbar {
+        align-items: center;
+        background: #2f3133;
+        color: #ffffff;
+        display: flex;
+        gap: 0.75rem;
+        justify-content: center;
+        min-height: 3rem;
+        padding: 0.35rem 0.75rem;
+    }
+
+    .document-pdf-toolbar button {
+        align-items: center;
+        background: #3a3c3f;
+        border: 1px solid #4b4d50;
+        border-radius: 0.4rem;
+        color: #ffffff;
+        display: inline-flex;
+        font-size: 1rem;
+        font-weight: 700;
+        height: 2.2rem;
+        justify-content: center;
+        line-height: 1;
+        width: 2.2rem;
+    }
+
+    .document-pdf-toolbar button:hover:not(:disabled) {
+        background: #4a4d50;
+    }
+
+    .document-pdf-toolbar button:disabled {
+        cursor: not-allowed;
+        opacity: 0.4;
+    }
+
+    .document-pdf-toolbar svg {
+        height: 1.15rem;
+        width: 1.15rem;
+    }
+
+    .document-pdf-stage {
+        align-items: flex-start;
+        background: #f3f4f6;
+        display: flex;
+        flex: 1;
+        justify-content: center;
+        overflow: auto;
+        padding: 1rem;
+    }
+
+    .document-pdf-stage canvas {
+        background: #ffffff;
+        box-shadow: 0 10px 24px rgba(15, 23, 42, 0.18);
+        max-width: none;
+    }
+</style>
 <x-app-layout>
     <div class="max-w-5xl mx-auto p-8 bg-white shadow-lg rounded-2xl space-y-10 mt-6">
         <h2 class="text-4xl font-extrabold text-gray-700 mb-8 pb-4 text-center border-b border-gray-300">
@@ -719,8 +776,27 @@
                     &times;
                 </button>
             </div>
+            <div class="document-pdf-toolbar" oncontextmenu="return false;">
+                <button type="button" id="productionPdfPrev" title="หน้าก่อนหน้า" disabled>
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m15 18-6-6 6-6"></path></svg>
+                </button>
+                <span id="productionPdfPageInfo" class="min-w-[4.5rem] text-center text-sm font-bold">0 / 0</span>
+                <button type="button" id="productionPdfNext" title="หน้าถัดไป" disabled>
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m9 18 6-6-6-6"></path></svg>
+                </button>
+                <button type="button" id="productionPdfZoomOut" title="ย่อ" disabled>
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="11" cy="11" r="7"></circle><path d="M8 11h6"></path><path d="m21 21-4.3-4.3"></path></svg>
+                </button>
+                <span id="productionPdfZoomLabel" class="min-w-[4rem] text-center text-sm font-bold">125%</span>
+                <button type="button" id="productionPdfZoomIn" title="ขยาย" disabled>
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="11" cy="11" r="7"></circle><path d="M8 11h6"></path><path d="M11 8v6"></path><path d="m21 21-4.3-4.3"></path></svg>
+                </button>
+                <button type="button" id="productionPdfFullscreen" title="เต็มจอ" disabled>
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M8 3H5a2 2 0 0 0-2 2v3"></path><path d="M16 3h3a2 2 0 0 1 2 2v3"></path><path d="M8 21H5a2 2 0 0 1-2-2v-3"></path><path d="M16 21h3a2 2 0 0 0 2-2v-3"></path></svg>
+                </button>
+            </div>
             <div id="productionFileViewer"
-                class="flex-1 bg-gray-100 overflow-auto p-4 flex flex-col items-center gap-4"
+                class="document-pdf-stage"
                 oncontextmenu="return false;">
             </div>
         </div>
@@ -825,7 +901,18 @@
             const viewer = document.getElementById('productionFileViewer');
             const title = document.getElementById('productionFileModalTitle');
             const closeBtn = document.getElementById('closeProductionFileModal');
+            const prevBtn = document.getElementById('productionPdfPrev');
+            const nextBtn = document.getElementById('productionPdfNext');
+            const pageInfo = document.getElementById('productionPdfPageInfo');
+            const zoomOutBtn = document.getElementById('productionPdfZoomOut');
+            const zoomInBtn = document.getElementById('productionPdfZoomIn');
+            const zoomLabel = document.getElementById('productionPdfZoomLabel');
+            const fullscreenBtn = document.getElementById('productionPdfFullscreen');
             let renderToken = 0;
+            let activePdf = null;
+            let activePdfPage = 1;
+            let activePdfScale = 1.25;
+            let activePdfRenderTask = null;
             let pdfWatermarkImagePromise = null;
             let pdfWatermarkGrayscaleImagePromise = null;
 
@@ -833,8 +920,35 @@
                 pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js';
             }
 
-            function closeModal() {
+            function updatePdfToolbar() {
+                const hasPdf = !!activePdf;
+                const totalPages = activePdf?.numPages || 0;
+
+                pageInfo.textContent = hasPdf ? `${activePdfPage} / ${totalPages}` : '0 / 0';
+                zoomLabel.textContent = `${Math.round(activePdfScale * 100)}%`;
+                prevBtn.disabled = !hasPdf || activePdfPage <= 1;
+                nextBtn.disabled = !hasPdf || activePdfPage >= totalPages;
+                zoomOutBtn.disabled = !hasPdf || activePdfScale <= 0.5;
+                zoomInBtn.disabled = !hasPdf || activePdfScale >= 3;
+                fullscreenBtn.disabled = !hasPdf;
+            }
+
+            function resetPdfState() {
                 renderToken++;
+
+                if (activePdfRenderTask) {
+                    activePdfRenderTask.cancel();
+                    activePdfRenderTask = null;
+                }
+
+                activePdf = null;
+                activePdfPage = 1;
+                activePdfScale = 1.25;
+                updatePdfToolbar();
+            }
+
+            function closeModal() {
+                resetPdfState();
                 modal.classList.add('hidden');
                 document.body.classList.remove('overflow-hidden');
                 viewer.innerHTML = '';
@@ -931,45 +1045,118 @@
                 context.restore();
             }
 
-            async function renderPdf(url) {
+            async function renderActivePdfPage() {
+                if (!activePdf) return;
+
                 const token = ++renderToken;
-                viewer.innerHTML = '<p class="text-gray-500 py-8">กำลังโหลดเอกสาร...</p>';
+                viewer.innerHTML = '<p class="m-auto text-gray-500 py-8">กำลังโหลดเอกสาร...</p>';
+
+                try {
+                    if (activePdfRenderTask) {
+                        activePdfRenderTask.cancel();
+                        activePdfRenderTask = null;
+                    }
+
+                    const page = await activePdf.getPage(activePdfPage);
+                    if (token !== renderToken) return;
+
+                    const viewport = page.getViewport({ scale: activePdfScale });
+                    const canvas = document.createElement('canvas');
+                    const context = canvas.getContext('2d');
+                    const outputScale = window.devicePixelRatio || 1;
+
+                    canvas.width = Math.floor(viewport.width * outputScale);
+                    canvas.height = Math.floor(viewport.height * outputScale);
+                    canvas.style.width = `${Math.floor(viewport.width)}px`;
+                    canvas.style.height = `${Math.floor(viewport.height)}px`;
+                    context.setTransform(outputScale, 0, 0, outputScale, 0, 0);
+
+                    viewer.innerHTML = '';
+                    viewer.appendChild(canvas);
+                    activePdfRenderTask = page.render({ canvasContext: context, viewport });
+                    await activePdfRenderTask.promise;
+                    activePdfRenderTask = null;
+
+                    if (token !== renderToken) return;
+                    await drawTiledPdfWatermark(context, canvas, outputScale);
+                    updatePdfToolbar();
+                } catch (error) {
+                    if (error?.name === 'RenderingCancelledException') return;
+
+                    if (token === renderToken) {
+                        viewer.innerHTML = '<p class="m-auto text-red-500 py-8">ไม่สามารถแสดงเอกสารนี้ได้</p>';
+                    }
+                }
+            }
+
+            async function renderPdf(url) {
+                resetPdfState();
+                const token = ++renderToken;
+                viewer.innerHTML = '<p class="m-auto text-gray-500 py-8">กำลังโหลดเอกสาร...</p>';
 
                 if (!window.pdfjsLib) {
-                    viewer.innerHTML = '<p class="text-red-500 py-8">ไม่สามารถโหลดตัวอ่าน PDF ได้</p>';
+                    viewer.innerHTML = '<p class="m-auto text-red-500 py-8">ไม่สามารถโหลดตัวอ่าน PDF ได้</p>';
                     return;
                 }
 
                 try {
-                    const pdf = await pdfjsLib.getDocument(url).promise;
+                    const pdf = await pdfjsLib.getDocument(url.split('#')[0]).promise;
                     if (token !== renderToken) return;
 
-                    viewer.innerHTML = '';
-                    for (let pageNumber = 1; pageNumber <= pdf.numPages; pageNumber++) {
-                        const page = await pdf.getPage(pageNumber);
-                        if (token !== renderToken) return;
-
-                        const viewport = page.getViewport({ scale: 1.4 });
-                        const canvas = document.createElement('canvas');
-                        const context = canvas.getContext('2d');
-                        const outputScale = window.devicePixelRatio || 1;
-                        canvas.width = Math.floor(viewport.width * outputScale);
-                        canvas.height = Math.floor(viewport.height * outputScale);
-                        canvas.style.width = `${Math.floor(viewport.width)}px`;
-                        canvas.style.height = `${Math.floor(viewport.height)}px`;
-                        canvas.className = 'max-w-full bg-white shadow-md';
-                        context.setTransform(outputScale, 0, 0, outputScale, 0, 0);
-                        viewer.appendChild(canvas);
-
-                        await page.render({ canvasContext: context, viewport }).promise;
-                        await drawTiledPdfWatermark(context, canvas, outputScale);
-                    }
+                    activePdf = pdf;
+                    activePdfPage = 1;
+                    activePdfScale = 1.25;
+                    updatePdfToolbar();
+                    await renderActivePdfPage();
                 } catch (error) {
                     if (token === renderToken) {
-                        viewer.innerHTML = '<p class="text-red-500 py-8">ไม่สามารถแสดงเอกสารนี้ได้</p>';
+                        viewer.innerHTML = '<p class="m-auto text-red-500 py-8">ไม่สามารถแสดงเอกสารนี้ได้</p>';
                     }
                 }
             }
+
+            prevBtn?.addEventListener('click', () => {
+                if (!activePdf || activePdfPage <= 1) return;
+
+                activePdfPage--;
+                updatePdfToolbar();
+                renderActivePdfPage();
+            });
+
+            nextBtn?.addEventListener('click', () => {
+                if (!activePdf || activePdfPage >= activePdf.numPages) return;
+
+                activePdfPage++;
+                updatePdfToolbar();
+                renderActivePdfPage();
+            });
+
+            zoomOutBtn?.addEventListener('click', () => {
+                if (!activePdf || activePdfScale <= 0.5) return;
+
+                activePdfScale = Math.max(0.5, activePdfScale - 0.25);
+                updatePdfToolbar();
+                renderActivePdfPage();
+            });
+
+            zoomInBtn?.addEventListener('click', () => {
+                if (!activePdf || activePdfScale >= 3) return;
+
+                activePdfScale = Math.min(3, activePdfScale + 0.25);
+                updatePdfToolbar();
+                renderActivePdfPage();
+            });
+
+            fullscreenBtn?.addEventListener('click', () => {
+                const pane = modal.querySelector('.bg-white') || viewer;
+
+                if (document.fullscreenElement) {
+                    document.exitFullscreen?.();
+                    return;
+                }
+
+                pane?.requestFullscreen?.();
+            });
 
             document.querySelectorAll('[data-file-url]').forEach(button => {
                 button.addEventListener('click', () => {
