@@ -1,9 +1,9 @@
 <x-app-layout>
     <div>
         <main class="flex-1 overflow-x-hidden overflow-y-auto">
-            <div class="container mx-auto px-6 py-6">
-                <div class="flex justify-between items-center mb-6">
-                    <h1 class="text-4xl font-extrabold text-gray-600 tracking-wide">
+            <div class="container px-6 py-6 mx-auto">
+                <div class="flex items-center justify-between mb-6">
+                    <h1 class="text-4xl font-extrabold tracking-wide text-gray-600">
                         จัดการผู้ใช้งาน
                         {{-- <span class="inline-flex items-center gap-2">
                             <svg class="w-10 h-10 text-indigo-400" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
@@ -13,27 +13,27 @@
                     </h1>
                     @can('User create')
                         <a href="{{ route('admin.users.create') }}"
-                            class="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded-lg shadow-md transition duration-300">
+                            class="px-4 py-2 font-bold text-white transition duration-300 bg-blue-500 rounded-lg shadow-md hover:bg-blue-700">
                             + สร้างผู้ใช้งาน
                         </a>
                     @endcan
                 </div>
 
-                <div class="bg-white rounded-2xl overflow-hidden border border-gray-200">
+                <div class="overflow-hidden bg-white border border-gray-200 rounded-2xl">
                     <div class="overflow-x-auto">
                         <table class="min-w-full bg-white">
                             <thead>
-                                <tr class="bg-indigo-600 text-white text-left">
-                                    <th class="py-3 px-4 rounded-tl-2xl">ชื่อผู้ใช้งาน</th>
-                                    {{-- <th class="py-3 px-4">ชื่อผู้ใช้งาน</th> --}}
-                                    <th class="py-3 px-4">อีเมล์เข้าสู่ระบบ</th>
-                                    <th class="py-3 px-3 sm:px-4 w-64">สิทธิ์</th>
-                                    <th class="py-3 px-4">ล็อกอินล่าสุด</th>
-                                    <th class="py-3 px-4">สถานะใช้งาน</th>
-                                    <th class="py-3 px-4 rounded-tr-2xl text-right">การดำเนินการ</th>
+                                <tr class="text-left text-white bg-indigo-600">
+                                    <th class="px-4 py-3 rounded-tl-2xl">ชื่อผู้ใช้งาน</th>
+                                    {{-- <th class="px-4 py-3">ชื่อผู้ใช้งาน</th> --}}
+                                    <th class="px-4 py-3">อีเมล์เข้าสู่ระบบ</th>
+                                    <th class="w-64 px-3 py-3 sm:px-4">สิทธิ์</th>
+                                    <th class="px-4 py-3">ล็อกอินล่าสุด</th>
+                                    <th class="px-4 py-3">สถานะใช้งาน</th>
+                                    <th class="px-4 py-3 text-right rounded-tr-2xl">การดำเนินการ</th>
                                 </tr>
                             </thead>
-                            <tbody class="text-gray-700 text-sm font-light">
+                            <tbody class="text-sm font-light text-gray-700">
                                 @can('User read')
                                     @php
                                         function translateRoleName($roleName)
@@ -61,48 +61,110 @@
 
                                     @endphp
                                     @foreach ($users as $user)
-                                        <tr class="border-b hover:bg-indigo-50 transition">
-                                            <td class="py-3 px-4 whitespace-nowrap">
+                                        <tr class="transition border-b hover:bg-indigo-50">
+                                            <td class="px-4 py-3 whitespace-nowrap">
                                                 <span class="font-semibold">{{ $user->name }}</span>
                                             </td>
-                                            <td class="py-3 px-4 whitespace-nowrap">
+                                            <td class="px-4 py-3 whitespace-nowrap">
                                                 <span class="font-semibold">{{ $user->email }}</span>
                                             </td>
-                                            <td class="py-3 px-3 sm:px-4 w-64">
+                                            <td class="w-64 px-3 py-3 sm:px-4">
                                                 <div class="flex flex-wrap gap-1.5 sm:gap-2 max-w-xs">
                                                     @foreach ($user->roles as $role)
                                                         <span
-                                                            class="inline-block max-w-full bg-gray-500 text-white text-xs font-bold px-2 py-1 rounded-full whitespace-normal break-words leading-snug">
+                                                            class="inline-block max-w-full px-2 py-1 text-xs font-bold leading-snug text-white break-words whitespace-normal bg-gray-500 rounded-full">
                                                             {{ translateRoleName($role->name) }}
                                                         </span>
                                                     @endforeach
                                                 </div>
                                             </td>
-                                             <td class="py-3 px-4 whitespace-nowrap">
-                                                <span class="font-semibold">
-                                                    {{ $user->last_login_at ? $user->last_login_at->format('d/m/Y H:i') : '-' }}
+                                            <td class="px-4 py-3 whitespace-nowrap">
+                                                @php
+                                                    $lastLogin = $user->last_login_at;
+
+                                                    $login = [
+                                                        'text' => 'ยังไม่เคยล็อกอิน',
+                                                        'badge' => 'bg-slate-50 text-slate-500 border-slate-200',
+                                                        'dot' => 'bg-slate-300',
+                                                        'status' => 'never',
+                                                    ];
+
+                                                    if ($lastLogin) {
+                                                        $minutes = $lastLogin->diffInMinutes();
+                                                        $hours = $lastLogin->diffInHours();
+                                                        $days = $lastLogin->diffInDays();
+
+                                                        if ($hours < 1) {
+                                                            $login = [
+                                                                'text' => "เมื่อ {$minutes} นาทีที่แล้ว",
+                                                                'badge' => 'bg-blue-50 text-blue-600 border-blue-200',
+                                                                'dot' => 'bg-blue-400',
+                                                                'status' => 'online',
+                                                            ];
+                                                        } elseif ($hours <= 6) {
+                                                            $login = [
+                                                                'text' => "เมื่อ {$hours} ชั่วโมงที่แล้ว",
+                                                                'badge' => 'bg-blue-50 text-blue-600 border-blue-200',
+                                                                'dot' => 'bg-blue-400',
+                                                                'status' => 'online',
+                                                            ];
+                                                        } elseif ($hours <= 24) {
+                                                            $login = [
+                                                                'text' => "เมื่อ {$hours} ชั่วโมงที่แล้ว",
+                                                                'badge' => 'bg-blue-50 text-blue-600 border-blue-200',
+                                                                'dot' => 'bg-blue-400',
+                                                                'status' => 'idle',
+                                                            ];
+                                                        } else {
+                                                            $login = [
+                                                                'text' => "เมื่อ {$days} วันที่แล้ว",
+                                                                'badge' => 'bg-blue-50 text-blue-600 border-blue-200',
+                                                                'dot' => 'bg-blue-400',
+                                                                'status' => 'offline',
+                                                            ];
+                                                        }
+                                                    }
+                                                @endphp
+
+                                                <div
+                                                    class="inline-flex items-center rounded-full border px-3 py-1.5 shadow-sm transition hover:shadow-md {{ $login['badge'] }}">
+                                                    <span class="text-sm font-semibold">
+                                                        {{ $login['text'] }}
+                                                    </span>
+                                                </div>
+                                            </td>
+                                            <td class="px-4 py-3 whitespace-nowrap">
+                                                @php
+                                                    $isActive = $user->employment_status === 'active';
+
+                                                    $employment = [
+                                                        'label' => $isActive ? 'ใช้งาน' : 'ไม่ใช้งาน',
+                                                        'badge' => $isActive
+                                                            ? 'bg-green-50 text-green-700 border-green-200'
+                                                            : 'bg-red-50 text-red-700 border-red-200',
+                                                        'dot' => $isActive ? 'bg-green-500' : 'bg-red-500',
+                                                    ];
+                                                @endphp
+                                                <span
+                                                    class="inline-flex items-center gap-2 rounded-full border px-3 py-1.5 text-xs font-semibold transition hover:shadow-sm {{ $employment['badge'] }}">
+                                                    <span class="relative flex h-2.5 w-2.5">
+
+                                                        <span
+                                                            class="absolute inline-flex h-full w-full animate-ping rounded-full {{ $employment['dot'] }} opacity-40"></span>
+
+                                                        <span
+                                                            class="relative inline-flex h-2.5 w-2.5 rounded-full {{ $employment['dot'] }}"></span>
+
+                                                    </span>
+
+                                                    {{ $employment['label'] }}
                                                 </span>
                                             </td>
-                                             <td class="py-3 px-4 whitespace-nowrap">
-                                                @if ($user->last_login_at)
-                                                    @php
-                                                        $daysSinceLastLogin = $user->last_login_at->diffInDays(now());
-                                                    @endphp
-                                                    <span class="font-semibold {{ $daysSinceLastLogin > 7 ? 'text-yellow-600' : 'text-green-600' }}">
-                                                        {{ $daysSinceLastLogin > 7 ? 'ไม่ได้ใช้งานเกิน 7 วัน' : 'ใช้งานล่าสุด' }}
-                                                    </span>
-                                                    <div class="text-xs text-gray-500">
-                                                        ผ่านมา {{ $daysSinceLastLogin }} วัน
-                                                    </div>
-                                                @else
-                                                    <span class="font-semibold text-gray-400">-</span>
-                                                @endif
-                                            </td>
-                                            <td class="py-3 px-4 text-right">
+                                            <td class="px-4 py-3 text-right">
                                                 <div class="flex items-center justify-end gap-2">
                                                     @can('User update')
                                                         <a href="{{ route('admin.users.edit', $user->id) }}"
-                                                            class="inline-flex items-center justify-center p-2 rounded-full text-white bg-yellow-500 hover:bg-yellow-600 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 transition-all duration-200"
+                                                            class="inline-flex items-center justify-center p-2 text-white transition-all duration-200 bg-yellow-500 rounded-full hover:bg-yellow-600 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
                                                             title="แก้ไข">
                                                             <svg xmlns="http://www.w3.org/2000/svg" fill="none"
                                                                 viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"
@@ -115,7 +177,7 @@
 
                                                     @can('User delete')
                                                         <button onclick="confirmDelete({{ $user->id }})"
-                                                            class="inline-flex items-center justify-center p-2 rounded-full text-white bg-red-500 hover:bg-red-600 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-500 transition-all duration-200"
+                                                            class="inline-flex items-center justify-center p-2 text-white transition-all duration-200 bg-red-500 rounded-full hover:bg-red-600 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-500"
                                                             title="ลบ">
                                                             <svg xmlns="http://www.w3.org/2000/svg" fill="none"
                                                                 viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"
@@ -147,7 +209,7 @@
                                     {{-- Previous Page Link --}}
                                     @if ($users->onFirstPage())
                                         <span
-                                            class="px-3 py-2 text-sm text-gray-400 bg-white border border-gray-300 rounded-l-md cursor-not-allowed">&laquo;</span>
+                                            class="px-3 py-2 text-sm text-gray-400 bg-white border border-gray-300 cursor-not-allowed rounded-l-md">&laquo;</span>
                                     @else
                                         <a href="{{ $users->previousPageUrl() }}"
                                             class="px-3 py-2 text-sm text-gray-700 bg-white border border-gray-300 hover:bg-gray-50 rounded-l-md">&laquo;</a>
@@ -170,7 +232,7 @@
                                             class="px-3 py-2 text-sm text-gray-700 bg-white border border-gray-300 hover:bg-gray-50 rounded-r-md">&raquo;</a>
                                     @else
                                         <span
-                                            class="px-3 py-2 text-sm text-gray-400 bg-white border border-gray-300 rounded-r-md cursor-not-allowed">&raquo;</span>
+                                            class="px-3 py-2 text-sm text-gray-400 bg-white border border-gray-300 cursor-not-allowed rounded-r-md">&raquo;</span>
                                     @endif
                                 </nav>
                             </div>
