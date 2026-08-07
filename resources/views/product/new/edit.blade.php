@@ -1,18 +1,18 @@
 <x-app-layout>
     <main class="flex-1 overflow-x-hidden overflow-y-auto">
-        <div class="container mx-auto px-6 py-6">
-            <h1 class="text-4xl font-extrabold text-center text-indigo-700 mt-5 mb-10 tracking-wide">
+        <div class="container px-6 py-6 mx-auto">
+            <h1 class="mt-5 mb-10 text-4xl font-extrabold tracking-wide text-center text-indigo-700">
                 รายละเอียดการขึ้นทะเบียนสินค้าใหม่
                 {{-- {{ dd(auth()->user()->getRoleNames()) }} --}}
             </h1>
-            <div class="bg-white rounded-2xl overflow-hidden shadow-lg p-8 border border-gray-200">
+            <div class="p-8 overflow-hidden bg-white border border-gray-200 shadow-lg rounded-2xl">
                 {{-- รายละเอียดข้อมูลยา --}}
                 @if (auth()->user()->hasRole('admin') ||
                         auth()->user()->hasRole('manager') ||
                         auth()->user()->hasRole('head Registration') ||
                         auth()->user()->department == 'Registration')
                     @if ($errors->any())
-                        <div class="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded relative mb-4"
+                        <div class="relative px-4 py-3 mb-4 text-red-700 bg-red-100 border border-red-400 rounded"
                             role="alert">
                             <strong class="font-bold">เกิดข้อผิดพลาด!</strong>
                             <span class="block sm:inline">โปรดตรวจสอบข้อมูลที่คุณกรอกอีกครั้ง</span>
@@ -26,7 +26,7 @@
 
                     {{-- ส่วนนี้สำหรับข้อผิดพลาดทั่วไปที่มาจาก Controller's catch block (เช่น database error) --}}
                     @if (session('error'))
-                        <div class="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded relative mb-4"
+                        <div class="relative px-4 py-3 mb-4 text-red-700 bg-red-100 border border-red-400 rounded"
                             role="alert">
                             <span class="block sm:inline">{{ session('error') }}</span>
                         </div>
@@ -34,7 +34,7 @@
 
                     {{-- เพื่อแสดงข้อผิดพลาดที่ส่งมาจาก catch block เช่น 'error' => 'เกิดข้อผิดพลาดในการบันทึกข้อมูล: ...' --}}
                     @if (session('error'))
-                        <div class="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded relative mb-4"
+                        <div class="relative px-4 py-3 mb-4 text-red-700 bg-red-100 border border-red-400 rounded"
                             role="alert">
                             <span class="block sm:inline">{{ session('error') }}</span>
                         </div>
@@ -45,13 +45,13 @@
                         @method('PUT')
                         <div>
                             <h3
-                                class="text-2xl font-semibold text-white bg-gradient-to-r from-blue-400 to-indigo-400 px-4 py-3 rounded-t-md">
+                                class="px-4 py-3 text-2xl font-semibold text-white bg-gradient-to-r from-blue-400 to-indigo-400 rounded-t-md">
                                 ข้อมูลทั่วไป
                             </h3>
 
-                            <div class="grid grid-cols-2 md:grid-cols-2 gap-6 mt-4">
+                            <div class="grid grid-cols-2 gap-6 mt-4 md:grid-cols-2">
                                 <div>
-                                    <label class="mx-3 text-base block text-gray-700 mb-1 mt-3">เลขที่ทะเบียน</label>
+                                    <label class="block mx-3 mt-3 mb-1 text-base text-gray-700">เลขที่ทะเบียน</label>
                                     <input type="text" id="registration_number" name="registration_number"
                                         value="{{ old('registration_number', $drug->registration_number) }}"
                                         placeholder="เช่น 123-2568"
@@ -60,32 +60,32 @@
                                         title="รูปแบบต้องเป็น ตัวเลขใดๆ ตามด้วย - และเลขท้าย 4 หลัก เช่น 123-2568"
                                         oninput="filterRegisNo(this)" />
                                     @error('registration_number')
-                                        <p class="text-red-500 text-xs italic mt-1">{{ $message }}</p>
+                                        <p class="mt-1 text-xs italic text-red-500">{{ $message }}</p>
                                     @enderror
                                 </div>
 
                                 <div class="w-full md:w-1/3">
-                                    <label class="mx-3 text-base block text-gray-700 mb-1 mt-3">วันหมดอายุ</label>
+                                    <label class="block mx-3 mt-3 mb-1 text-base text-gray-700">วันหมดอายุ</label>
                                     <input type="text" name="production_license_expiry"
                                         id="production_license_expiry"
-                                        class="date-th w-full p-3 pl-2 border rounded-full focus:outline-none focus:ring-2 focus:ring-blue-500"
+                                        class="w-full p-3 pl-2 border rounded-full date-th focus:outline-none focus:ring-2 focus:ring-blue-500"
                                         value="{{ old('production_license_expiry', $drug->production_license_expiry ? \Carbon\Carbon::parse($drug->production_license_expiry)->addYears(543)->format('d/m/Y') : '') }}"
                                         placeholder="วว/ดด/ปปปป">
                                     @error('production_license_expiry')
-                                        <p class="text-red-500 text-xs italic mt-1">{{ $message }}</p>
+                                        <p class="mt-1 text-xs italic text-red-500">{{ $message }}</p>
                                     @enderror
                                 </div>
 
                                 <div>
                                     <label
-                                        class="mx-3 text-base block text-gray-700 mb-1 mt-3">บริษัทที่ขึ้นทะเบียน<span
+                                        class="block mx-3 mt-3 mb-1 text-base text-gray-700">บริษัทที่ขึ้นทะเบียน<span
                                             class="text-red-500"> *</span></label>
                                     <div class="dropdown" id="registrantDropdown">
                                         <div style="height: 50px;" class="text-gray-500 dropdown-btn"
                                             id="registrantBtn">--
                                             เลือกบริษัทที่ขึ้นทะเบียน --</div>
                                         <div class="dropdown-list" id="registrantList">
-                                            <div class="dropdown-item text-gray-500" data-value="">--
+                                            <div class="text-gray-500 dropdown-item" data-value="">--
                                                 เลือกบริษัทที่ขึ้นทะเบียน --</div>
                                             @foreach ($companies as $company)
                                                 {{-- @if ($company->id != 4) --}}
@@ -99,62 +99,62 @@
                                     <input type="hidden" name="registrant" id="registrantInput"
                                         value="{{ old('registrant', $drug->registrant) }}">
                                     @error('registrant')
-                                        <p class="text-red-500 text-xs italic mt-1">{{ $message }}</p>
+                                        <p class="mt-1 text-xs italic text-red-500">{{ $message }}</p>
                                     @enderror
                                 </div>
 
                                 <div>
                                     <label
-                                        class="mx-3 text-base block text-gray-700 mb-1 mt-3">เปอร์เซ็นต์และสูตร</label>
+                                        class="block mx-3 mt-3 mb-1 text-base text-gray-700">เปอร์เซ็นต์และสูตร</label>
                                     <input type="text" name="composition"
                                         value="{{ old('composition', $drug->composition) }}"
                                         placeholder="ใส่ เปอร์เซ็นต์และสูตร"
                                         class="w-full p-3 border rounded-full focus:outline-none focus:ring-2 focus:ring-blue-500" />
                                     @error('composition')
-                                        <p class="text-red-500 text-xs italic mt-1">{{ $message }}</p>
+                                        <p class="mt-1 text-xs italic text-red-500">{{ $message }}</p>
                                     @enderror
                                 </div>
                                 <div>
-                                    <label class="mx-3 text-base block text-gray-700 mb-1 mt-3">ชื่อวัตถุอันตราย
+                                    <label class="block mx-3 mt-3 mb-1 text-base text-gray-700">ชื่อวัตถุอันตราย
                                         (ไทย)</label>
                                     <input type="text" name="chemical_name_th"
                                         value="{{ old('chemical_name_th', $drug->chemical_name_th) }}"
                                         placeholder="ใส่ชื่อวัตถุอันตราย (ไทย)"
                                         class="w-full p-3 border rounded-full focus:outline-none focus:ring-2 focus:ring-blue-500" />
                                     @error('chemical_name_th')
-                                        <p class="text-red-500 text-xs italic mt-1">{{ $message }}</p>
+                                        <p class="mt-1 text-xs italic text-red-500">{{ $message }}</p>
                                     @enderror
                                 </div>
                                 <div>
-                                    <label class="mx-3 text-base block text-gray-700 mb-1 mt-3">ชื่อวัตถุอันตราย
+                                    <label class="block mx-3 mt-3 mb-1 text-base text-gray-700">ชื่อวัตถุอันตราย
                                         (อังกฤษ)</label>
                                     <input type="text" name="chemical_name_en"
                                         value="{{ old('chemical_name_en', $drug->chemical_name_en) }}"
                                         placeholder="ใส่ชื่อวัตถุอันตราย (อังกฤษ)"
                                         class="w-full p-3 border rounded-full focus:outline-none focus:ring-2 focus:ring-blue-500" />
                                     @error('chemical_name_en')
-                                        <p class="text-red-500 text-xs italic mt-1">{{ $message }}</p>
+                                        <p class="mt-1 text-xs italic text-red-500">{{ $message }}</p>
                                     @enderror
                                 </div>
                                 <div>
-                                    <label class="mx-3 text-base block text-gray-700 mb-1 mt-3">ผู้ผลิตและแหล่งผลิต
+                                    <label class="block mx-3 mt-3 mb-1 text-base text-gray-700">ผู้ผลิตและแหล่งผลิต
                                         <span class="text-red-500"> *</span></label>
                                     <input type="text"
                                         class="w-full p-3 border rounded-full focus:outline-none focus:ring-2 focus:ring-blue-500"
                                         name="manufacturer" value="{{ old('manufacturer', $drug->manufacturer) }}" />
                                     @error('manufacturer')
-                                        <p class="text-red-500 text-xs italic mt-1">{{ $message }}</p>
+                                        <p class="mt-1 text-xs italic text-red-500">{{ $message }}</p>
                                     @enderror
                                 </div>
                                 <div>
-                                    <label class="mx-3 text-base block text-gray-700 mb-1 mt-3">ประเภททะเบียน <span
+                                    <label class="block mx-3 mt-3 mb-1 text-base text-gray-700">ประเภททะเบียน <span
                                             class="text-red-500"> *</span></label>
                                     <div class="dropdown" id="registrationTypeDropdown">
                                         <div style="height: 50px;" class="text-gray-500 dropdown-btn"
                                             id="registrationTypeBtn">--
                                             เลือกประเภททะเบียน --</div>
                                         <div class="dropdown-list" id="registrationTypeList">
-                                            <div class="dropdown-item text-gray-500" data-value="">--
+                                            <div class="text-gray-500 dropdown-item" data-value="">--
                                                 เลือกประเภททะเบียน --</div>
                                             <div class="dropdown-item" data-value="T : นำเข้าสารเข้มข้น">T :
                                                 นำเข้าสารเข้มข้น</div>
@@ -174,19 +174,19 @@
                                     <input type="hidden" name="registration_type" id="registrationTypeInput"
                                         value="{{ old('registration_type', $drug->registration_type) }}">
                                     @error('registration_type')
-                                        <p class="text-red-500 text-xs italic mt-1">{{ $message }}</p>
+                                        <p class="mt-1 text-xs italic text-red-500">{{ $message }}</p>
                                     @enderror
                                 </div>
 
                                 <div>
-                                    <label class="mx-3 text-base block text-gray-700 mb-1 mt-3">ชื่อผู้นำเข้า <span
+                                    <label class="block mx-3 mt-3 mb-1 text-base text-gray-700">ชื่อผู้นำเข้า <span
                                             class="text-red-500"> *</span></label>
                                     <div class="dropdown" id="importerDropdown">
                                         <div style="height: 50px;" class="text-gray-500 dropdown-btn"
                                             id="importerBtn">--
                                             เลือกผู้นำเข้า --</div>
                                         <div class="dropdown-list" id="importerList">
-                                            <div class="dropdown-item text-gray-500" data-value="">-- เลือกผู้นำเข้า
+                                            <div class="text-gray-500 dropdown-item" data-value="">-- เลือกผู้นำเข้า
                                                 --</div>
                                             @foreach ($companies as $company)
                                                 {{-- @if ($company->id != 4) --}}
@@ -200,17 +200,17 @@
                                     <input type="hidden" name="importer" id="importerInput"
                                         value="{{ old('importer', $drug->importer) }}">
                                     @error('importer')
-                                        <p class="text-red-500 text-xs italic mt-1">{{ $message }}</p>
+                                        <p class="mt-1 text-xs italic text-red-500">{{ $message }}</p>
                                     @enderror
                                 </div>
                                 <div>
-                                    <label class="mx-3 text-base block text-gray-700 mb-1 mt-3">ชื่อผู้จำหน่าย <span
+                                    <label class="block mx-3 mt-3 mb-1 text-base text-gray-700">ชื่อผู้จำหน่าย <span
                                             class="text-red-500"> *</span></label>
                                     <div class="dropdown" id="distributorDropdown">
                                         <div style="height: 50px;" class="text-gray-500 dropdown-btn"
                                             id="distributorBtn">-- เลือกผู้จำหน่าย --</div>
                                         <div class="dropdown-list" id="distributorList">
-                                            <div class="dropdown-item text-gray-500" data-value="">-- เลือกผู้จำหน่าย
+                                            <div class="text-gray-500 dropdown-item" data-value="">-- เลือกผู้จำหน่าย
                                                 --</div>
                                             @foreach ($companies as $company)
                                                 <div class="dropdown-item" data-value="{{ $company->full_name }}">
@@ -222,27 +222,27 @@
                                     <input type="hidden" name="distributor" id="distributorInput"
                                         value="{{ old('distributor', $drug->distributor) }}">
                                     @error('distributor')
-                                        <p class="text-red-500 text-xs italic mt-1">{{ $message }}</p>
+                                        <p class="mt-1 text-xs italic text-red-500">{{ $message }}</p>
                                     @enderror
                                 </div>
                                 <div>
-                                    <label class="mx-3 text-base block text-gray-700 mb-1 mt-3">ชื่อการค้า <span
+                                    <label class="block mx-3 mt-3 mb-1 text-base text-gray-700">ชื่อการค้า <span
                                             class="text-red-500"> *</span></label>
                                     <input type="text"
                                         class="w-full p-3 border rounded-full focus:outline-none focus:ring-2 focus:ring-blue-500"
                                         name="trade_name" value="{{ old('trade_name', $drug->trade_name) }}" />
                                     @error('trade_name')
-                                        <p class="text-red-500 text-xs italic mt-1">{{ $message }}</p>
+                                        <p class="mt-1 text-xs italic text-red-500">{{ $message }}</p>
                                     @enderror
                                 </div>
                                 <div>
-                                    <label class="mx-3 text-base block text-gray-700 mb-1 mt-3">ชื่อการค้าที่ <span
+                                    <label class="block mx-3 mt-3 mb-1 text-base text-gray-700">ชื่อการค้าที่ <span
                                             class="text-red-500"> *</span></label>
                                     <div class="dropdown" id="namePositionDropdown">
                                         <div style="height: 50px;" class="text-gray-500 dropdown-btn"
                                             id="namePositionBtn">-- เลือกชื่อการที่ --</div>
                                         <div class="dropdown-list" id="namePositionList">
-                                            <div class="dropdown-item text-gray-500" data-value="">-- เลือกชื่การที่
+                                            <div class="text-gray-500 dropdown-item" data-value="">-- เลือกชื่การที่
                                                 --</div>
                                             <div class="dropdown-item" data-value="T">T</div>
                                             <div class="dropdown-item" data-value="-">-</div>
@@ -254,18 +254,18 @@
                                     <input type="hidden" name="name_position" id="namePositionInput"
                                         value="{{ old('name_position', $drug->name_position) }}">
                                     @error('name_position')
-                                        <p class="text-red-500 text-xs italic mt-1">{{ $message }}</p>
+                                        <p class="mt-1 text-xs italic text-red-500">{{ $message }}</p>
                                     @enderror
                                 </div>
                                 <div>
-                                    <label class="mx-3 text-base block text-gray-700 mb-1 mt-3">ชนิดทะเบียน <span
+                                    <label class="block mx-3 mt-3 mb-1 text-base text-gray-700">ชนิดทะเบียน <span
                                             class="text-red-500"> *</span></label>
                                     <div class="dropdown" id="typeRegistrationDropdown">
                                         <div style="height: 50px;" class="text-gray-500 dropdown-btn"
                                             id="typeRegistrationBtn">--
                                             เลือกชนิดทะเบียน --</div>
                                         <div class="dropdown-list" id="typeRegistrationList">
-                                            <div class="dropdown-item text-gray-500" data-value="">--
+                                            <div class="text-gray-500 dropdown-item" data-value="">--
                                                 เลือกชนิดทะเบียน --</div>
                                             <div class="dropdown-item" data-value="ชนิดที่ 1">ชนิดที่ 1</div>
                                             <div class="dropdown-item" data-value="ชนิดที่ 2">ชนิดที่ 2</div>
@@ -276,18 +276,18 @@
                                     <input type="hidden" name="type_registration" id="typeRegistrationInput"
                                         value="{{ old('type_registration', $drug->type_registration) }}">
                                     @error('type_registration')
-                                        <p class="text-red-500 text-xs italic mt-1">{{ $message }}</p>
+                                        <p class="mt-1 text-xs italic text-red-500">{{ $message }}</p>
                                     @enderror
                                 </div>
                                 <div>
-                                    <label class="mx-3 text-base block text-gray-700 mb-1 mt-3">ประเภทของการใช้ <span
+                                    <label class="block mx-3 mt-3 mb-1 text-base text-gray-700">ประเภทของการใช้ <span
                                             class="text-red-500"> *</span></label>
                                     <div class="dropdown" id="typeOfUseDropdown">
                                         <div style="height: 50px;" class="text-gray-500 dropdown-btn"
                                             id="typeOfUseBtn">--
                                             เลือกประเภทของการใช้ --</div>
                                         <div class="dropdown-list" id="typeOfUseList">
-                                            <div class="dropdown-item text-gray-500" data-value="">--
+                                            <div class="text-gray-500 dropdown-item" data-value="">--
                                                 เลือกประเภทของการใช้ --</div>
                                             <div class="dropdown-item"
                                                 data-value="A : Acaricide (สารกำจัดไรศัตรูพืช)">A :
@@ -315,78 +315,78 @@
                                     <input type="hidden" name="type_of_use" id="typeOfUseInput"
                                         value="{{ old('type_of_use', $drug->type_of_use) }}">
                                     @error('type_of_use')
-                                        <p class="text-red-500 text-xs italic mt-1">{{ $message }}</p>
+                                        <p class="mt-1 text-xs italic text-red-500">{{ $message }}</p>
                                     @enderror
                                 </div>
                                 <div>
-                                    <label class="mx-3 text-base block text-gray-700 mb-1 mt-3">กลุ่มสาร</label>
+                                    <label class="block mx-3 mt-3 mb-1 text-base text-gray-700">กลุ่มสาร</label>
                                     <input type="text" name="group_of_substances"
                                         value="{{ old('group_of_substances', $drug->group_of_substances) }}"
                                         placeholder="ใส่กลุ่มสาร"
                                         class="w-full p-3 border rounded-full focus:outline-none focus:ring-2 focus:ring-blue-500" />
                                     @error('group_of_substances')
-                                        <p class="text-red-500 text-xs italic mt-1">{{ $message }}</p>
+                                        <p class="mt-1 text-xs italic text-red-500">{{ $message }}</p>
                                     @enderror
                                 </div>
                                 <div>
-                                    <label class="mx-3 text-base block text-gray-700 mb-1 mt-3">พืช</label>
+                                    <label class="block mx-3 mt-3 mb-1 text-base text-gray-700">พืช</label>
                                     <input type="text" name="plant" value="{{ old('plant', $drug->plant) }}"
                                         placeholder="ใส่พืช"
                                         class="w-full p-3 border rounded-full focus:outline-none focus:ring-2 focus:ring-blue-500" />
                                     @error('plant')
-                                        <p class="text-red-500 text-xs italic mt-1">{{ $message }}</p>
+                                        <p class="mt-1 text-xs italic text-red-500">{{ $message }}</p>
                                     @enderror
                                 </div>
                                 <div>
-                                    <label class="mx-3 text-base block text-gray-700 mb-1 mt-3">ศัตรูพืช</label>
+                                    <label class="block mx-3 mt-3 mb-1 text-base text-gray-700">ศัตรูพืช</label>
                                     <input type="text" name="pests" value="{{ old('pests', $drug->pests) }}"
                                         placeholder="ใส่ศัตรูพืช"
                                         class="w-full p-3 border rounded-full focus:outline-none focus:ring-2 focus:ring-blue-500" />
                                     @error('pests')
-                                        <p class="text-red-500 text-xs italic mt-1">{{ $message }}</p>
+                                        <p class="mt-1 text-xs italic text-red-500">{{ $message }}</p>
                                     @enderror
                                 </div>
                                 <div>
-                                    <label class="mx-3 text-base block text-gray-700 mb-1 mt-3">ปริมาณ</label>
+                                    <label class="block mx-3 mt-3 mb-1 text-base text-gray-700">ปริมาณ</label>
                                     <input type="text" name="quantity"
                                         value="{{ old('quantity', $drug->quantity) }}" placeholder="ใส่ปริมาณ"
                                         class="w-full p-3 border rounded-full focus:outline-none focus:ring-2 focus:ring-blue-500" />
                                     @error('quantity')
-                                        <p class="text-red-500 text-xs italic mt-1">{{ $message }}</p>
+                                        <p class="mt-1 text-xs italic text-red-500">{{ $message }}</p>
                                     @enderror
                                 </div>
                                 <div class="md:col-span-2">
                                     <label
-                                        class="mx-3 text-base block text-gray-700 mb-1 mt-3">รายละเอียดขนาดบรรจุ</label>
+                                        class="block mx-3 mt-3 mb-1 text-base text-gray-700">รายละเอียดขนาดบรรจุ</label>
                                     <textarea name="packaging_size_details"
                                         class="w-full p-3 border rounded-2xl focus:outline-none focus:ring-2 focus:ring-blue-500" rows="2">{{ old('packaging_size_details', $drug->packaging_size_details) }}</textarea>
                                     @error('packaging_size_details')
-                                        <p class="text-red-500 text-xs italic mt-1">{{ $message }}</p>
+                                        <p class="mt-1 text-xs italic text-red-500">{{ $message }}</p>
                                     @enderror
                                 </div>
                                 <div class="md:col-span-2">
-                                    <div class="flex flex-col md:flex-row gap-6">
+                                    <div class="flex flex-col gap-6 md:flex-row">
 
                                         {{-- วันที่ยื่นคำขอ --}}
                                         <div class="w-full md:w-1/3">
                                             <label
-                                                class="mx-3 text-base block text-gray-700 mb-1 mt-3">วันที่ยื่นคำขอ</label>
+                                                class="block mx-3 mt-3 mb-1 text-base text-gray-700">วันที่ยื่นคำขอ</label>
                                             <input type="text" name="date_submit_request" id="date_submit_request"
-                                                class="date-th w-full p-3 pl-2 border rounded-full focus:outline-none focus:ring-2 focus:ring-blue-500"
+                                                class="w-full p-3 pl-2 border rounded-full date-th focus:outline-none focus:ring-2 focus:ring-blue-500"
                                                 value="{{ old('date_submit_request', $drug->date_submit_request ? \Carbon\Carbon::parse($drug->date_submit_request)->addYears(543)->format('d/m/Y') : '') }}"
                                                 placeholder="วว/ดด/ปปปป" autocomplete="off">
                                             @error('date_submit_request')
-                                                <p class="text-red-500 text-xs italic mt-1">{{ $message }}</p>
+                                                <p class="mt-1 text-xs italic text-red-500">{{ $message }}</p>
                                             @enderror
                                         </div>
                                         <div class="w-full md:w-1/3">
                                             <label
-                                                class="mx-3 text-base block text-gray-700 mb-1 mt-3">เลขที่รับคำขอ</label>
+                                                class="block mx-3 mt-3 mb-1 text-base text-gray-700">เลขที่รับคำขอ</label>
                                             <input type="text" name="request_number_1"
                                                 value="{{ old('request_number_1', $drug->request_number_1) }}"
                                                 class="w-full p-3 border rounded-full focus:outline-none focus:ring-2 focus:ring-blue-500" />
                                             @error('request_number_1')
-                                                <p class="text-red-500 text-xs italic mt-1">{{ $message }}</p>
+                                                <p class="mt-1 text-xs italic text-red-500">{{ $message }}</p>
                                             @enderror
                                         </div>
 
@@ -394,50 +394,50 @@
                                     </div>
                                 </div>
                                 <div class="md:col-span-2">
-                                    <div class="flex flex-col md:flex-row gap-6">
+                                    <div class="flex flex-col gap-6 md:flex-row">
                                         <div class="w-full md:w-1/3">
-                                            <label class="mx-3 text-base block text-gray-700 mb-1 mt-3">วันที่ยื่น
+                                            <label class="block mx-3 mt-3 mb-1 text-base text-gray-700">วันที่ยื่น
                                                 Phase
                                                 III</label>
                                             <input type="text" name="date_request_phase_3"
                                                 id="date_request_phase_3"
-                                                class="date-th w-full p-3 pl-2 border rounded-full focus:outline-none focus:ring-2 focus:ring-blue-500"
+                                                class="w-full p-3 pl-2 border rounded-full date-th focus:outline-none focus:ring-2 focus:ring-blue-500"
                                                 value="{{ old('date_request_phase_3', $drug->date_request_phase_3 ? \Carbon\Carbon::parse($drug->date_request_phase_3)->addYears(543)->format('d/m/Y') : '') }}"
                                                 placeholder="วว/ดด/ปปปป">
                                             @error('date_request_phase_3')
-                                                <p class="text-red-500 text-xs italic mt-1">{{ $message }}</p>
+                                                <p class="mt-1 text-xs italic text-red-500">{{ $message }}</p>
                                             @enderror
                                         </div>
 
 
                                         <div class="w-full md:w-1/3">
-                                            <label class="mx-3 text-base block text-gray-700 mb-1 mt-3">เลข Phase
+                                            <label class="block mx-3 mt-3 mb-1 text-base text-gray-700">เลข Phase
                                                 III</label>
                                             <input type="text" name="request_number_phase_3"
                                                 value="{{ old('request_number_phase_3', $drug->request_number_phase_3) }}"
                                                 class="w-full p-3 border rounded-full focus:outline-none focus:ring-2 focus:ring-blue-500" />
                                             @error('request_number_phase_3')
-                                                <p class="text-red-500 text-xs italic mt-1">{{ $message }}</p>
+                                                <p class="mt-1 text-xs italic text-red-500">{{ $message }}</p>
                                             @enderror
                                         </div>
                                         <div class="w-full md:w-1/3">
-                                            <label class="mx-3 text-base block text-gray-700 mb-1 mt-3">เลข Phase
+                                            <label class="block mx-3 mt-3 mb-1 text-base text-gray-700">เลข Phase
                                                 I</label>
                                             <input type="text" name="request_number_phase_1"
                                                 value="{{ old('request_number_phase_1', $drug->request_number_phase_1) }}"
                                                 class="w-full p-3 border rounded-full focus:outline-none focus:ring-2 focus:ring-blue-500" />
                                             @error('request_number_phase_1')
-                                                <p class="text-red-500 text-xs italic mt-1">{{ $message }}</p>
+                                                <p class="mt-1 text-xs italic text-red-500">{{ $message }}</p>
                                             @enderror
                                         </div>
                                     </div>
                                 </div>
                                 <div class="md:col-span-2">
-                                    <label class="mx-3 text-base block text-gray-700 mb-1 mt-3">อื่นๆ (ระบุ)</label>
+                                    <label class="block mx-3 mt-3 mb-1 text-base text-gray-700">อื่นๆ (ระบุ)</label>
                                     <textarea name="remarks" class="w-full p-3 border rounded-2xl focus:outline-none focus:ring-2 focus:ring-blue-500"
                                         rows="2">{{ old('remarks', $drug->remarks) }}</textarea>
                                     @error('remarks')
-                                        <p class="text-red-500 text-xs italic mt-1">{{ $message }}</p>
+                                        <p class="mt-1 text-xs italic text-red-500">{{ $message }}</p>
                                     @enderror
                                 </div>
                             </div>
@@ -445,11 +445,11 @@
 
                         <div class="flex justify-center gap-4 pt-4">
                             <a href="{{ route('newregis.index') }}"
-                                class="bg-gray-500 hover:bg-gray-500 text-white font-bold py-2 px-6 rounded-lg shadow-md flex items-center justify-center">
+                                class="flex items-center justify-center px-6 py-2 font-bold text-white bg-gray-500 rounded-lg shadow-md hover:bg-gray-500">
                                 ยกเลิก
                             </a>
                             <button type="submit"
-                                class="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-6 rounded-lg shadow-md">
+                                class="px-6 py-2 font-bold text-white bg-blue-500 rounded-lg shadow-md hover:bg-blue-700">
                                 บันทึก
                             </button>
                         </div>
@@ -863,12 +863,14 @@
                                 $isVisible = $stepNumber === ($displayStep ?? ($drug->current_step_number ?? 1));
                             }
 
+                            // Allow the current department to keep editing its own step
+                            // even after its own sub-steps are marked complete.
                             $isEditable =
                                 $canEdit ||
                                 (!auth()
                                     ->user()
                                     ->hasAnyRole(['admin', 'manager', 'head Registration']) &&
-                                    $percent < 100);
+                                    $stepNumber === ($displayStep ?? ($drug->current_step_number ?? 1)));
                         @endphp
 
                         @if ($isVisible && count($departments) > 0)
@@ -912,8 +914,8 @@
 
                                 <input type="hidden" name="step_number" value="{{ $stepNumber }}">
                                 <input type="hidden" name="progress" value="{{ $form_show_step_number }}">
-                                <div class="mt-8 bg-gray-50 border border-gray-200 rounded-xl p-4">
-                                    <h4 class="text-lg font-semibold text-indigo-600 mb-3">
+                                <div class="p-4 mt-8 border border-gray-200 bg-gray-50 rounded-xl">
+                                    <h4 class="mb-3 text-lg font-semibold text-indigo-600">
                                         ขั้นตอนที่ {{ $stepNumber }}: {{ $stepTitle }}
                                     </h4>
 
@@ -925,7 +927,7 @@
                                                 style="width: {{ $percent }}%">
                             </div>
                 </div>
-                <div class="text-xs text-gray-500 text-right mt-1">{{ $percent }}%</div>
+                <div class="mt-1 text-xs text-right text-gray-500">{{ $percent }}%</div>
             </div> --}}
 
                                     {{-- รายการ checkbox --}}
@@ -952,10 +954,10 @@
 
                                             @if ($showDept)
                                                 <div>
-                                                    <h5 class="text-sm font-bold text-gray-700 mb-2">
+                                                    <h5 class="mb-2 text-sm font-bold text-gray-700">
                                                         {{ $dept }}
                                                     </h5>
-                                                    <div class="space-y-2 pl-4">
+                                                    <div class="pl-4 space-y-2">
                                                         @foreach ($subItems as $label)
                                                             @php
                                                                 $record = $savedSubSteps[$checkboxIndex] ?? null;
@@ -987,7 +989,7 @@
                                                                         style="{{ $isChecked ? '' : 'display: none;' }}">
                                                                         <label class="inline-flex items-center">
                                                                             <input type="radio"
-                                                                                class="form-radio text-green-500 w-5 h-5"
+                                                                                class="w-5 h-5 text-green-500 form-radio"
                                                                                 name="sub_step_notes[{{ $checkboxIndex }}]"
                                                                                 value="ไม่มี"
                                                                                 {{ $note == 'ไม่มี' ? 'checked' : '' }}
@@ -997,7 +999,7 @@
                                                                         </label>
                                                                         <label class="inline-flex items-center">
                                                                             <input type="radio"
-                                                                                class="form-radio text-yellow-500 w-5 h-5"
+                                                                                class="w-5 h-5 text-yellow-500 form-radio"
                                                                                 name="sub_step_notes[{{ $checkboxIndex }}]"
                                                                                 value="มี"
                                                                                 {{ $note == 'มี' ? 'checked' : '' }}
@@ -1011,7 +1013,7 @@
                                                                     name="sub_step_remarks[{{ $checkboxIndex }}]"
                                                                     value="{{ $remark }}"
                                                                     placeholder="หมายเหตุ"
-                                                                    class="p-2 border rounded-md flex-1 w-48"
+                                                                    class="flex-1 w-48 p-2 border rounded-md"
                                                                     {{ !$isEditable ? 'disabled' : '' }}>
                                                             </div>
                                                             @php $checkboxIndex++; @endphp
@@ -1045,20 +1047,18 @@
                                             $userTotalCount > 0 && $userCheckedCount === $userTotalCount;
                                     @endphp
 
-                                    @if (!$userDeptComplete)
-                                        <div class="text-center mt-4">
+                                    @if ($isEditable && !(auth()->user()->hasRole('admin') || auth()->user()->department == 'Registration'))
+                                        <div class="mt-4 text-center">
                                             @if ($stepNumber == 1)
                                                 {{-- <a href="{{ route('newregis.index') }}"
-                                                    class="bg-gray-300 hover:bg-gray-400 text-gray-800 font-bold py-2 px-4 rounded-lg shadow transition duration-300 mr-2">
-                                                    <i class="fa-solid fa-arrow-left mr-2"></i> ย้อนกลับ
+                                                    class="px-4 py-2 mr-2 font-bold text-gray-800 transition duration-300 bg-gray-300 rounded-lg shadow hover:bg-gray-400">
+                                                    <i class="mr-2 fa-solid fa-arrow-left"></i> ย้อนกลับ
                                                 </a> --}}
                                             @endif
-                                            @if ($isEditable && !(auth()->user()->hasRole('admin') || auth()->user()->department == 'Registration'))
-                                                <button type="submit"
-                                                    class="bg-indigo-600 hover:bg-indigo-700 text-white px-4 py-2 rounded-lg shadow transition">
-                                                    <i class="fa-solid fa-floppy-disk mr-1"></i> บันทึกความคืบหน้า
-                                                </button>
-                                            @endif
+                                            <button type="submit"
+                                                class="px-4 py-2 text-white transition bg-indigo-600 rounded-lg shadow hover:bg-indigo-700">
+                                                <i class="mr-1 fa-solid fa-floppy-disk"></i> บันทึกความคืบหน้า
+                                            </button>
                                         </div>
                                     @endif
                                 </div>
@@ -1066,14 +1066,14 @@
                         @endif
                     @endforeach
                     @if ($isAdminRole)
-                        <div class="text-center mt-8">
+                        <div class="mt-8 text-center">
                             <a href="{{ route('newregis.index') }}"
-                                class="bg-gray-300 hover:bg-gray-400 text-gray-800 font-bold py-2 px-4 rounded-lg shadow transition duration-300 mr-2">
-                                <i class="fa-solid fa-arrow-left mr-2"></i> ย้อนกลับ
+                                class="px-4 py-2 mr-2 font-bold text-gray-800 transition duration-300 bg-gray-300 rounded-lg shadow hover:bg-gray-400">
+                                <i class="mr-2 fa-solid fa-arrow-left"></i> ย้อนกลับ
                             </a>
                             <button type="button" id="save-all-progress"
-                                class="bg-indigo-600 hover:bg-indigo-700 text-white font-bold py-2 px-6 rounded-lg shadow-md">
-                                <i class="fa-solid fa-floppy-disk mr-1"></i> บันทึกความคืบหน้า
+                                class="px-6 py-2 font-bold text-white bg-indigo-600 rounded-lg shadow-md hover:bg-indigo-700">
+                                <i class="mr-1 fa-solid fa-floppy-disk"></i> บันทึกความคืบหน้า
                             </button>
                         </div>
                     @endif
