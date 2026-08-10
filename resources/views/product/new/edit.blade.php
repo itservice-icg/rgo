@@ -7,10 +7,7 @@
             </h1>
             <div class="p-8 overflow-hidden bg-white border border-gray-200 shadow-lg rounded-2xl">
                 {{-- รายละเอียดข้อมูลยา --}}
-                @if (auth()->user()->hasRole('admin') ||
-                        auth()->user()->hasRole('manager') ||
-                        auth()->user()->hasRole('head Registration') ||
-                        auth()->user()->department == 'Registration')
+                @if (can_manage_new_registration_steps(auth()->user()))
                     @if ($errors->any())
                         <div class="relative px-4 py-3 mb-4 text-red-700 bg-red-100 border border-red-400 rounded"
                             role="alert">
@@ -746,11 +743,8 @@
                             ][$enDept] ?? $enDept;
                         }
 
-                        $mappedUserDept = mapDepartment(auth()->user()->department);
-                        $isAdminRole =
-                            auth()->user()->hasRole('admin') ||
-                            auth()->user()->hasRole('manager') ||
-                            auth()->user()->hasRole('head Registration');
+                        $mappedUserDept = normalize_department_name(auth()->user()->department);
+                        $isAdminRole = can_manage_new_registration_steps(auth()->user());
 
                         // สรุปสถานะความคืบหน้าปัจจุบัน (ใช้ logic เดียวกับหน้า index)
                         $overall_show_step_number = 0;
@@ -831,14 +825,11 @@
                                     ->all();
                             }
 
-                            $departments =
-                                !auth()->user()->hasRole('admin') &&
-                                !auth()->user()->hasRole('manager') &&
-                                !auth()->user()->hasRole('head Registration')
-                                    ? collect($allDepartments)
-                                        ->filter(fn($_, $deptName) => $deptName === $mappedUserDept)
-                                        ->all()
-                                    : $allDepartments;
+                            $departments = $isAdminRole
+                                ? $allDepartments
+                                : collect($allDepartments)
+                                    ->filter(fn($_, $deptName) => normalize_department_name($deptName) === $mappedUserDept)
+                                    ->all();
 
                             $savedSubSteps = $drug->stepSubSteps($stepNumber)->get()->keyBy('sub_step_index');
 
@@ -847,10 +838,37 @@
                             $completedCount = $savedSubSteps->whereNotNull('checked_at')->count();
                             $percent = $totalSub > 0 ? round(($completedCount / $totalSub) * 100, 2) : 0;
 
-                            $canEdit =
-                                auth()->user()->hasRole('admin') ||
-                                auth()->user()->hasRole('manager') ||
-                                auth()->user()->hasRole('head Registration');
+                            $visibleSubStepIndexes = [];
+                            $visibleSubStepCount = 0;
+                            $indexCursor = 0;
+                            foreach ($allDepartments as $dept => $subItems) {
+                                $skipThisDept =
+                                    $hideAcademicSteps &&
+                                    in_array($stepNumber, [4, 5, 6]) &&
+                                    $dept === 'แผนกวิชาการ';
+                                if ($skipThisDept) {
+                                    $indexCursor += count($subItems);
+                                    continue;
+                                }
+
+                                $showDept = $isAdminRole || normalize_department_name($dept) === $mappedUserDept;
+                                if ($showDept) {
+                                    foreach ($subItems as $label) {
+                                        $visibleSubStepIndexes[] = $indexCursor;
+                                        $visibleSubStepCount++;
+                                        $indexCursor++;
+                                    }
+                                } else {
+                                    $indexCursor += count($subItems);
+                                }
+                            }
+
+                            $completedVisibleSubSteps = collect($visibleSubStepIndexes)
+                                ->filter(fn($subStepIndex) => ($savedSubSteps[$subStepIndex]->checked_at ?? null) !== null)
+                                ->count();
+                            $stepCompletedForScope = $visibleSubStepCount > 0 && $completedVisibleSubSteps === $visibleSubStepCount;
+
+                            $canEdit = !empty($mappedUserDept);
                             $previousStepsCompleted = collect(range(1, $stepNumber - 1))->every(
                                 fn($s) => $completedStepFlags[$s] ?? false,
                             );
@@ -861,6 +879,11 @@
                                 $isVisible = $stepNumber === 1 || $previousStepsCompleted;
                             } else {
                                 $isVisible = $stepNumber === ($displayStep ?? ($drug->current_step_number ?? 1));
+                            }
+                            if ($isAdminRole) {
+                                $isVisible = true;
+                            } else {
+                                $isVisible = $isVisible && ! $stepCompletedForScope;
                             }
 
                             // Allow the current department to keep editing its own step
@@ -944,12 +967,7 @@
                                                     continue;
                                                 }
 
-                                                $showDept =
-                                                    auth()->user()->hasRole('admin') ||
-                                                    auth()->user()->hasRole('manager') ||
-                                                    auth()->user()->hasRole('head Registration') ||
-                                                    auth()->user()->department == 'Registration' ||
-                                                    $dept === $mappedUserDept;
+                                                $showDept = $isAdminRole || normalize_department_name($dept) === $mappedUserDept;
                                             @endphp
 
                                             @if ($showDept)
@@ -972,10 +990,7 @@
                                                                     {{ $isChecked ? 'checked' : '' }}
                                                                     @if(
                                                                         !$isEditable ||
-                                                                        (!auth()->user()->hasRole('admin') &&
-                                                                            !auth()->user()->hasRole('manager') &&
-                                                                            !auth()->user()->hasRole('head Registration') &&
-                                                                            $dept !== $mappedUserDept)
+                                                                        (!$isAdminRole && normalize_department_name($dept) !== $mappedUserDept)
                                                                     ) disabled @endif
                                                                     class="w-5 h-5 text-indigo-600 border-gray-300 rounded focus:ring-indigo-500"
                                                                     onchange="toggleInput({{ $stepNumber }}, {{ $checkboxIndex }})">
