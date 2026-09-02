@@ -166,10 +166,10 @@
 
 <x-app-layout>
     <main class="flex-1 overflow-x-hidden overflow-y-auto">
-        <div class="container mx-auto px-1 py-2 sm:px-6 sm:py-6">
-            <h1 class="text-2xl sm:text-4xl font-extrabold text-center text-indigo-700 mt-1 sm:mt-5 mb-3 sm:mb-10 tracking-wide">
+        <div class="container px-1 py-2 mx-auto sm:px-6 sm:py-6">
+            <h1 class="mt-1 mb-3 text-2xl font-extrabold tracking-wide text-center text-indigo-700 sm:text-4xl sm:mt-5 sm:mb-10">
                 <span class="inline-flex items-center justify-center gap-2">
-                    <svg class="w-8 h-8 sm:w-10 sm:h-10 text-indigo-400" fill="none" stroke="currentColor" stroke-width="2"
+                    <svg class="w-8 h-8 text-indigo-400 sm:w-10 sm:h-10" fill="none" stroke="currentColor" stroke-width="2"
                         viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round"
                             d="M12 8c-1.657 0-3 1.343-3 3v1c0 1.657 1.343 3 3 3s3-1.343 3-3v-1c0-1.657-1.343-3-3-3z" />
@@ -181,15 +181,15 @@
             </h1>
 
             {{-- สรุปสถานะทะเบียน --}}
-            <div class="summary-status-grid gap-1 sm:gap-3 lg:gap-4 mb-2 sm:mb-4 lg:mb-6">
+            <div class="gap-1 mb-2 summary-status-grid sm:gap-3 lg:gap-4 sm:mb-4 lg:mb-6">
                 {{-- ทั้งหมด --}}
                 <a href="{{ route('createproduct.index', array_merge(request()->except('status_filter', 'page'), ['page' => 1])) }}"
                     class="rounded-2xl border border-blue-200 bg-blue-50 px-1 py-2 sm:px-2 sm:py-3 lg:px-4 lg:py-4 text-center active:scale-95 transition {{ !request('status_filter') ? 'ring-2 ring-blue-300 bg-blue-100' : '' }}">
                     <div class="flex justify-center mb-1">
-                        <div class="flex h-8 w-8 items-center justify-center rounded-full bg-blue-200" style="width: 60px; height: 60px;">
+                        <div class="flex items-center justify-center w-8 h-8 bg-blue-200 rounded-full" style="width: 60px; height: 60px;">
                             {{-- ไอคอนใหม่ --}}
                             <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" style="width: 50px!important; height: 50px!important;"
-                                stroke-width="1.5" stroke="currentColor" class="h-4 w-4 text-blue-700">
+                                stroke-width="1.5" stroke="currentColor" class="w-4 h-4 text-blue-700">
                                 <path stroke-linecap="round" stroke-linejoin="round"
                                     d="M9 12h3.75M9 15h3.75M9 18h3.75m3 .75H18a2.25 2.25 0 0 0 2.25-2.25V6.108c0-1.135-.845-2.098-1.976-2.192a48.424 48.424 0 0 0-1.123-.08m-5.801 0c-.065.21-.1.433-.1.664 0 .414.336.75.75.75h4.5a.75.75 0 0 0 .75-.75 2.25 2.25 0 0 0-.1-.664m-5.8 0A2.251 2.251 0 0 1 13.5 2.25H15c1.012 0 1.867.668 2.15 1.586m-5.8 0c-.376.023-.75.05-1.124.08C9.095 4.01 8.25 4.973 8.25 6.108V8.25m0 0H4.875c-.621 0-1.125.504-1.125 1.125v11.25c0 .621.504 1.125 1.125 1.125h9.75c.621 0 1.125-.504 1.125-1.125V9.375c0-.621-.504-1.125-1.125-1.125H8.25ZM6.75 12h.008v.008H6.75V12Zm0 3h.008v.008H6.75V15Zm0 3h.008v.008H6.75V18Z" />
                             </svg>
@@ -203,8 +203,8 @@
                 <a href="{{ route('createproduct.index', array_merge(request()->except('status_filter', 'page'), ['status_filter' => 'soon_expired', 'page' => 1])) }}"
                     class="rounded-2xl border border-yellow-200 bg-yellow-50 px-1 py-2 sm:px-2 sm:py-3 lg:px-4 lg:py-4 text-center active:scale-95 transition {{ request('status_filter') == 'soon_expired' ? 'ring-2 ring-yellow-300 bg-yellow-100' : '' }}">
                     <div class="flex justify-center mb-1">
-                        <div class="flex h-8 w-8 items-center justify-center rounded-full bg-yellow-200" style="width: 60px; height: 60px;">
-                            <svg class="h-4 w-4 text-yellow-700" fill="none" stroke="currentColor" stroke-width="2" style="width: 50px!important; height: 50px!important;"
+                        <div class="flex items-center justify-center w-8 h-8 bg-yellow-200 rounded-full" style="width: 60px; height: 60px;">
+                            <svg class="w-4 h-4 text-yellow-700" fill="none" stroke="currentColor" stroke-width="2" style="width: 50px!important; height: 50px!important;"
                                 viewBox="0 0 24 24">
                                 <path stroke-linecap="round" stroke-linejoin="round" d="M12 8v4l3 3" />
                                 <circle cx="12" cy="12" r="10" />
@@ -219,8 +219,8 @@
                 <a href="{{ route('createproduct.index', array_merge(request()->except('status_filter', 'page'), ['status_filter' => 'expired', 'page' => 1])) }}"
                     class="rounded-2xl border border-red-200 bg-red-50 px-1 py-2 sm:px-2 sm:py-3 lg:px-4 lg:py-4 text-center active:scale-95 transition {{ request('status_filter') == 'expired' ? 'ring-2 ring-red-300 bg-red-100' : '' }}">
                     <div class="flex justify-center mb-1">
-                        <div class="flex h-8 w-8 items-center justify-center rounded-full bg-red-200" style="width: 60px; height: 60px;">
-                            <svg class="h-4 w-4 text-red-700" fill="none" stroke="currentColor" stroke-width="2" style="width: 50px!important; height: 50px!important;"
+                        <div class="flex items-center justify-center w-8 h-8 bg-red-200 rounded-full" style="width: 60px; height: 60px;">
+                            <svg class="w-4 h-4 text-red-700" fill="none" stroke="currentColor" stroke-width="2" style="width: 50px!important; height: 50px!important;"
                                 viewBox="0 0 24 24">
                                 <path stroke-linecap="round" stroke-linejoin="round" d="M12 8v4l3 3" />
                                 <circle cx="12" cy="12" r="10" />
@@ -232,12 +232,12 @@
                 </a>
             </div>
 
-            <div class="hidden lg:block flex flex-col sm:flex-row justify-between items-center mx-3 mb-2">
+            <div class="flex flex-col items-center justify-between hidden mx-3 mb-2 lg:block sm:flex-row">
                 <form id="filterForm" action="{{ route('createproduct.index') }}" method="GET"
                     data-filter-form class="flex items-center gap-2 mb-2">
                     <div class="relative flex-grow min-w-[280px]">
-                        <label for="search_query" class="mx-3 text-base block text-gray-700 mb-1 mt-3">ค้นหา</label>
-                        <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none mt-9">
+                        <label for="search_query" class="block mx-3 mt-3 mb-1 text-base text-gray-700">ค้นหา</label>
+                        <div class="absolute inset-y-0 left-0 flex items-center pl-3 pointer-events-none mt-9">
                             <svg class="w-5 h-5 text-gray-400" fill="none" stroke="currentColor" stroke-width="2"
                                 viewBox="0 0 24 24">
                                 <path stroke-linecap="round" stroke-linejoin="round"
@@ -245,17 +245,33 @@
                             </svg>
                         </div>
                         <input type="text" id="search_query" name="search"
-                            placeholder="ชื่อวัตถุอันตราย /เลขที่ทะเบียน /ผู้ขึ้นทะเบียน"
+                            placeholder="ชื่อวัตถุอันตราย / เลขที่ทะเบียน / ผู้ขึ้นทะเบียน"
                             value="{{ request('search') }}"
                             class="pl-10 pr-4 py-2 w-[500px] rounded-lg border border-gray-300 focus:outline-none focus:ring-2 focus:ring-purple-600 transition duration-200 ease-in-out text-gray-700 shadow-sm"
+                            style="width:100%" />
+                    </div>
+
+                    <div class="relative flex-grow min-w-[260px]">
+                        <label for="trade_name_search" class="block mx-3 mt-3 mb-1 text-base text-gray-700">ชื่อการค้า</label>
+                        <div class="absolute inset-y-0 left-0 flex items-center pl-3 pointer-events-none mt-9">
+                            <svg class="w-5 h-5 text-gray-400" fill="none" stroke="currentColor" stroke-width="2"
+                                viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round"
+                                    d="m21 21-5.197-5.197m0 0A7.5 7.5 0 1 0 5.196 5.196a7.5 7.5 0 0 0 10.607 10.607Z" />
+                            </svg>
+                        </div>
+                        <input type="text" id="trade_name_search" name="trade_name_search"
+                            placeholder="ค้นหาชื่อการค้า"
+                            value="{{ request('trade_name_search') }}"
+                            class="pl-10 pr-4 py-2 w-[500px] rounded-lg border border-gray-300 focus:outline-none focus:ring-2 focus:ring-indigo-600 transition duration-200 ease-in-out text-gray-700 shadow-sm"
                             style="width:100%" />
                     </div>
                     {{-- วันที่เริ่ม --}}
                     <div class="flex-grow min-w-[180px]">
                         <label for="expiry_date_from"
-                            class="mx-3 text-base block text-gray-700 mb-1 mt-3">วันที่เริ่ม</label>
+                            class="block mx-3 mt-3 mb-1 text-base text-gray-700">วันที่เริ่ม</label>
                         <input id="expiry_date_from"
-                            class="date-th px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-600 focus:border-transparent transition duration-200 ease-in-out text-gray-500 text-base shadow-sm w-full"
+                            class="w-full px-4 py-2 text-base text-gray-500 transition duration-200 ease-in-out border border-gray-300 rounded-lg shadow-sm date-th focus:outline-none focus:ring-2 focus:ring-purple-600 focus:border-transparent"
                             type="text" name="expiry_date_from" value="{{ request('expiry_date_from') }}"
                             placeholder="วว/ดด/ปปปป" autocomplete="off" autocorrect="off" autocapitalize="off"
                             spellcheck="false" />
@@ -264,16 +280,16 @@
                     {{-- วันที่สิ้นสุด --}}
                     <div class="flex-grow min-w-[180px]">
                         <label for="expiry_date_to"
-                            class="mx-3 text-base block text-gray-700 mb-1 mt-3">วันที่สิ้นสุด</label>
+                            class="block mx-3 mt-3 mb-1 text-base text-gray-700">วันที่สิ้นสุด</label>
                         <input id="expiry_date_to"
-                            class="date-th px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-600 focus:border-transparent transition duration-200 ease-in-out text-gray-500 text-base shadow-sm w-full"
+                            class="w-full px-4 py-2 text-base text-gray-500 transition duration-200 ease-in-out border border-gray-300 rounded-lg shadow-sm date-th focus:outline-none focus:ring-2 focus:ring-purple-600 focus:border-transparent"
                             type="text" name="expiry_date_to" value="{{ request('expiry_date_to') }}"
                             placeholder="วว/ดด/ปปปป" autocomplete="off" autocorrect="off" autocapitalize="off"
                             spellcheck="false" />
                     </div>
                     <div class="flex gap-3 mt-10">
                         <button type="submit"
-                            class="bg-gradient-to-r from-blue-500 to-blue-500 hover:from-blue-600 hover:to-indigo-700 text-white font-semibold px-6 py-2 rounded-lg shadow-md transform hover:scale-105 transition duration-200 ease-in-out focus:outline-none focus:ring-2 focus:ring-blue-600 focus:ring-opacity-50">
+                            class="px-6 py-2 font-semibold text-white transition duration-200 ease-in-out transform rounded-lg shadow-md bg-gradient-to-r from-blue-500 to-blue-500 hover:from-blue-600 hover:to-indigo-700 hover:scale-105 focus:outline-none focus:ring-2 focus:ring-blue-600 focus:ring-opacity-50">
                             <svg class="w-5 h-5 inline-block mr-1 -mt-0.5" fill="none" stroke="currentColor"
                                 stroke-width="2" viewBox="0 0 24 24">
                                 <path stroke-linecap="round" stroke-linejoin="round"
@@ -281,9 +297,9 @@
                             </svg>
                             ค้นหา
                         </button>
-                        @if (request('search') || request('expiry_date_from') || request('expiry_date_to') || request('status_filter'))
-                            <a href="{{ route('createproduct.index') }}" {{-- class="inline-flex items-center bg-gray-300 hover:bg-gray-400 text-gray-800 font-semibold px-6 py-2 rounded-lg shadow-md transform hover:scale-105 transition duration-200 ease-in-out focus:outline-none focus:ring-2 focus:ring-gray-400 focus:ring-opacity-50"> --}}
-                                class="inline-flex items-center bg-gray-300 hover:bg-gray-400 text-gray-800 font-semibold px-6 py-2 rounded-lg shadow-md transform hover:scale-105 transition duration-200 ease-in-out focus:outline-none focus:ring-2 focus:ring-gray-400 focus:ring-opacity-50">
+                        @if (request('search') || request('trade_name_search') || request('expiry_date_from') || request('expiry_date_to') || request('status_filter'))
+                            <a href="{{ route('createproduct.index') }}" {{-- class="inline-flex items-center px-6 py-2 font-semibold text-gray-800 transition duration-200 ease-in-out transform bg-gray-300 rounded-lg shadow-md hover:bg-gray-400 hover:scale-105 focus:outline-none focus:ring-2 focus:ring-gray-400 focus:ring-opacity-50"> --}}
+                                class="inline-flex items-center px-6 py-2 font-semibold text-gray-800 transition duration-200 ease-in-out transform bg-gray-300 rounded-lg shadow-md hover:bg-gray-400 hover:scale-105 focus:outline-none focus:ring-2 focus:ring-gray-400 focus:ring-opacity-50">
 
                                 <svg class="w-5 h-5 inline-block mr-1 -mt-0.5" fill="none" stroke="currentColor"
                                     stroke-width="2" viewBox="0 0 24 24">
@@ -296,7 +312,7 @@
                 </form>
                 {{-- @can('Inregister create')
                     <a href="{{ route('createproduct.create') }}"
-                        class="mt-8 bg-gradient-to-r from-blue-500 to-indigo-600 hover:from-blue-600 hover:to-indigo-700 text-white font-semibold px-6 py-2 rounded-lg shadow-md transform hover:scale-105 transition duration-200 ease-in-out focus:outline-none focus:ring-2 focus:ring-blue-600 focus:ring-opacity-50">
+                        class="px-6 py-2 mt-8 font-semibold text-white transition duration-200 ease-in-out transform rounded-lg shadow-md bg-gradient-to-r from-blue-500 to-indigo-600 hover:from-blue-600 hover:to-indigo-700 hover:scale-105 focus:outline-none focus:ring-2 focus:ring-blue-600 focus:ring-opacity-50">
                         + เพิ่มข้อมูล
                     </a>
                 @endcan --}}
@@ -304,12 +320,12 @@
 
             <div class="lg:hidden">
                 <form action="{{ route('createproduct.index') }}" method="GET" data-filter-form
-                    class="bg-white border border-gray-100 rounded-2xl shadow-sm p-2 sm:p-4">
+                    class="p-2 bg-white border border-gray-100 shadow-sm rounded-2xl sm:p-4">
                     <div class="grid grid-cols-1 gap-2 sm:gap-3">
                         <div class="min-w-0">
-                            <label for="mobile_search_query" class="block text-sm font-semibold text-gray-700 mb-1">ค้นหา</label>
+                            <label for="mobile_search_query" class="block mb-1 text-sm font-semibold text-gray-700">ค้นหา</label>
                             <div class="relative">
-                                <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                                <div class="absolute inset-y-0 left-0 flex items-center pl-3 pointer-events-none">
                                     <svg class="w-5 h-5 text-gray-400" fill="none" stroke="currentColor" stroke-width="2"
                                         viewBox="0 0 24 24">
                                         <path stroke-linecap="round" stroke-linejoin="round"
@@ -317,25 +333,42 @@
                                     </svg>
                                 </div>
                                 <input type="text" id="mobile_search_query" name="search"
-                                    placeholder="ชื่อวัตถุอันตราย / เลขที่ทะเบียน"
+                                    placeholder="ชื่อวัตถุอันตราย / เลขที่ทะเบียน / ผู้ขึ้นทะเบียน"
                                     value="{{ request('search') }}"
-                                    class="w-full pl-10 pr-3 py-2 sm:pr-4 sm:py-3 rounded-xl border border-gray-300 focus:outline-none focus:ring-2 focus:ring-blue-500 text-gray-700 shadow-sm" />
+                                    class="w-full py-2 pl-10 pr-3 text-gray-700 border border-gray-300 shadow-sm sm:pr-4 sm:py-3 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500" />
                             </div>
                         </div>
 
                         <div class="min-w-0">
-                            <label for="mobile_expiry_date_from" class="block text-sm font-semibold text-gray-700 mb-1">วันที่เริ่ม</label>
+                            <label for="mobile_trade_name_search" class="block mb-1 text-sm font-semibold text-gray-700">ชื่อการค้า</label>
+                            <div class="relative">
+                                <div class="absolute inset-y-0 left-0 flex items-center pl-3 pointer-events-none">
+                                    <svg class="w-5 h-5 text-gray-400" fill="none" stroke="currentColor" stroke-width="2"
+                                        viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round"
+                                            d="m21 21-5.197-5.197m0 0A7.5 7.5 0 1 0 5.196 5.196a7.5 7.5 0 0 0 10.607 10.607Z" />
+                                    </svg>
+                                </div>
+                                <input type="text" id="mobile_trade_name_search" name="trade_name_search"
+                                    placeholder="ค้นหาชื่อการค้า"
+                                    value="{{ request('trade_name_search') }}"
+                                    class="w-full py-2 pl-10 pr-3 text-gray-700 border border-gray-300 shadow-sm sm:pr-4 sm:py-3 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500" />
+                            </div>
+                        </div>
+
+                        <div class="min-w-0">
+                            <label for="mobile_expiry_date_from" class="block mb-1 text-sm font-semibold text-gray-700">วันที่เริ่ม</label>
                             <input id="mobile_expiry_date_from"
-                                class="date-th w-full px-3 py-2 sm:px-4 sm:py-3 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 text-gray-700 shadow-sm"
+                                class="w-full px-3 py-2 text-gray-700 border border-gray-300 shadow-sm date-th sm:px-4 sm:py-3 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500"
                                 type="text" name="expiry_date_from" value="{{ request('expiry_date_from') }}"
                                 placeholder="วว/ดด/ปปปป" autocomplete="off" autocorrect="off" autocapitalize="off"
                                 spellcheck="false" />
                         </div>
 
                         <div class="min-w-0">
-                            <label for="mobile_expiry_date_to" class="block text-sm font-semibold text-gray-700 mb-1">วันที่สิ้นสุด</label>
+                            <label for="mobile_expiry_date_to" class="block mb-1 text-sm font-semibold text-gray-700">วันที่สิ้นสุด</label>
                             <input id="mobile_expiry_date_to"
-                                class="date-th w-full px-3 py-2 sm:px-4 sm:py-3 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 text-gray-700 shadow-sm"
+                                class="w-full px-3 py-2 text-gray-700 border border-gray-300 shadow-sm date-th sm:px-4 sm:py-3 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500"
                                 type="text" name="expiry_date_to" value="{{ request('expiry_date_to') }}"
                                 placeholder="วว/ดด/ปปปป" autocomplete="off" autocorrect="off" autocapitalize="off"
                                 spellcheck="false" />
@@ -343,12 +376,12 @@
 
                         <div class="grid grid-cols-2 gap-2">
                             <button type="submit"
-                                class="w-full inline-flex items-center justify-center gap-2 bg-blue-600 hover:bg-blue-700 text-white font-semibold px-3 py-2 sm:px-5 sm:py-3 rounded-xl shadow-sm active:scale-95 transition">
+                                class="inline-flex items-center justify-center w-full gap-2 px-3 py-2 font-semibold text-white transition bg-blue-600 shadow-sm hover:bg-blue-700 sm:px-5 sm:py-3 rounded-xl active:scale-95">
                                 ค้นหา
                             </button>
-                            @if (request('search') || request('expiry_date_from') || request('expiry_date_to') || request('status_filter'))
+                            @if (request('search') || request('trade_name_search') || request('expiry_date_from') || request('expiry_date_to') || request('status_filter'))
                                 <a href="{{ route('createproduct.index') }}"
-                                    class="w-full inline-flex items-center justify-center gap-2 bg-gray-100 hover:bg-gray-200 text-gray-700 font-semibold px-3 py-2 sm:px-5 sm:py-3 rounded-xl border border-gray-200 shadow-sm active:scale-95 transition">
+                                    class="inline-flex items-center justify-center w-full gap-2 px-3 py-2 font-semibold text-gray-700 transition bg-gray-100 border border-gray-200 shadow-sm hover:bg-gray-200 sm:px-5 sm:py-3 rounded-xl active:scale-95">
                                     ล้าง
                                 </a>
                             @endif
@@ -357,7 +390,7 @@
                 </form>
             </div>
 
-            <div class="hidden lg:block bg-white rounded-2xl overflow-hidden border border-gray-200">
+            <div class="hidden overflow-hidden bg-white border border-gray-200 lg:block rounded-2xl">
                 <div class="overflow-x-auto">
                     <table class="min-w-[1320px] table-fixed bg-white">
                         <colgroup>
@@ -372,36 +405,36 @@
                             <col class="w-56">
                         </colgroup>
                         <thead>
-                            <tr class="bg-indigo-600 text-white text-left">
-                                <th class="py-4 px-4 rounded-tl-2xl text-center">ลำดับ</th>
-                                {{-- <th class="py-4 px-6">ชื่อการค้า</th> --}}
-                                <th class="py-4 px-4">ชื่อวัตถุอันตราย (ไทย)</th>
-                                <th class="py-4 px-4">ชื่อวัตถุอันตราย (อังกฤษ) </th>
-                                {{-- <th class="py-4 px-6">ชื่อวัตถุอันตราย (อังกฤษ)</th> --}}
-                                <th class="py-4 px-4">ผู้ขึ้นทะเบียน</th>
-                                <th class="py-4 px-4">ผู้จำหน่าย</th>
-                                {{-- <th class="py-4 px-6 text-center">ตัวย่อ</th> --}}
-                                <th class="py-4 px-4 text-center">เลขที่ทะเบียน</th>
-                                <th class="py-4 px-4 text-center">วันหมดอายุ</th>
-                                <th class="py-4 px-4 text-center">สถานะ</th>
-                                <th class="py-4 px-4 rounded-tr-2xl text-center">การดำเนินการ</th>
+                            <tr class="text-left text-white bg-indigo-600">
+                                <th class="px-4 py-4 text-center rounded-tl-2xl">ลำดับ</th>
+                                {{-- <th class="px-6 py-4">ชื่อการค้า</th> --}}
+                                <th class="px-4 py-4">ชื่อวัตถุอันตราย (ไทย)</th>
+                                <th class="px-4 py-4">ชื่อวัตถุอันตราย (อังกฤษ) </th>
+                                {{-- <th class="px-6 py-4">ชื่อวัตถุอันตราย (อังกฤษ)</th> --}}
+                                <th class="px-4 py-4">ผู้ขึ้นทะเบียน</th>
+                                <th class="px-4 py-4">ผู้จำหน่าย</th>
+                                {{-- <th class="px-6 py-4 text-center">ตัวย่อ</th> --}}
+                                <th class="px-4 py-4 text-center">เลขที่ทะเบียน</th>
+                                <th class="px-4 py-4 text-center">วันหมดอายุ</th>
+                                <th class="px-4 py-4 text-center">สถานะ</th>
+                                <th class="px-4 py-4 text-center rounded-tr-2xl">การดำเนินการ</th>
                             </tr>
                         </thead>
                         <tbody>
                             @can('Inregister read')
                                 @forelse ($imports as $index => $import)
-                                    <tr class="border-b hover:bg-indigo-50 transition">
-                                        <td class="py-4 px-4 font-semibold text-center text-gray-700">
+                                    <tr class="transition border-b hover:bg-indigo-50">
+                                        <td class="px-4 py-4 font-semibold text-center text-gray-700">
                                             {{ $loop->iteration + ($imports->currentPage() - 1) * $imports->perPage() }}
                                         </td>
-                                        {{-- <td class="py-4 px-6">{{ $import->trade_name ?? '' }}</td> --}}
-                                        <td class="py-4 px-6 break-words">{{ $import->chemical_name_th ?? '' }}</td>
-                                        <td class="py-4 px-6 break-words">{{ $import->chemical_name_en ?? '' }}</td>
-                                        {{-- <td class="py-4 px-6 text-center">{{ $import->Companes->full_name ?? '' }}</td> --}}
-                                        <td class="py-4 px-4 break-words">{{ $import->company->full_name ?? '' }}</td>
-                                        <td class="py-4 px-4 break-words">{{ $import->distributorCompany->full_name ?? '' }}</td>
-                                        <td class="py-4 px-4 text-center break-words">{{ $import->registration_number ?? '' }}</td>
-                                        <td class="py-4 px-4 text-center whitespace-nowrap">
+                                        {{-- <td class="px-6 py-4">{{ $import->trade_name ?? '' }}</td> --}}
+                                        <td class="px-6 py-4 break-words">{{ $import->chemical_name_th ?? '' }}</td>
+                                        <td class="px-6 py-4 break-words">{{ $import->chemical_name_en ?? '' }}</td>
+                                        {{-- <td class="px-6 py-4 text-center">{{ $import->Companes->full_name ?? '' }}</td> --}}
+                                        <td class="px-4 py-4 break-words">{{ $import->company->full_name ?? '' }}</td>
+                                        <td class="px-4 py-4 break-words">{{ $import->distributorCompany->full_name ?? '' }}</td>
+                                        <td class="px-4 py-4 text-center break-words">{{ $import->registration_number ?? '' }}</td>
+                                        <td class="px-4 py-4 text-center whitespace-nowrap">
                                             {{ \Carbon\Carbon::parse($import->expired_license_date)->addYears(543)->format('d/m/Y') }}
                                         </td>
                                         @php
@@ -413,7 +446,7 @@
                                             });
                                             $legacyDocumentExists = $productionFiles->isEmpty() && ($import->additional_document || $import->document);
                                         @endphp
-                                        <td class="py-4 px-4 text-center">
+                                        <td class="px-4 py-4 text-center">
                                             @php
                                                 $statusClass = '';
                                                 $statusText = $import->status;
@@ -433,11 +466,11 @@
                                                 {{ $statusText }}
                                             </span>
                                         </td>
-                                        <td class="py-4 px-4 text-center">
-                                            <div class="flex items-center gap-3 justify-center">
+                                        <td class="px-4 py-4 text-center">
+                                            <div class="flex items-center justify-center gap-3">
                                                 @can('Inregister read')
                                                     <a href="{{ route('createproduct.show', $import->id) }}"
-                                                        class="inline-flex items-center justify-center p-2 rounded-full text-white bg-green-500 hover:bg-green-600 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500 transition-all duration-200"
+                                                        class="inline-flex items-center justify-center p-2 text-white transition-all duration-200 bg-green-500 rounded-full hover:bg-green-600 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500"
                                                         title="ดูรายละเอียด">
                                                         <svg xmlns="http://www.w3.org/2000/svg" fill="none"
                                                             viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"
@@ -452,7 +485,7 @@
                                                 @can('import_data_manufacture read')
                                                     <button type="button"
                                                         onclick="openDocumentFilesModal('production-files-template-{{ $import->id }}', 'รายการไฟล์ทะเบียนผลิต')"
-                                                        class="inline-flex items-center justify-center p-2 rounded-full text-white bg-blue-600 hover:bg-blue-600 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500 transition-all duration-200"
+                                                        class="inline-flex items-center justify-center p-2 text-white transition-all duration-200 bg-blue-600 rounded-full hover:bg-blue-600 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500"
                                                         title="ดู PDF">
                                                         <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24"
                                                             viewBox="0 0 24 24" fill="none" stroke="currentColor"
@@ -474,9 +507,9 @@
                                                                             <button type="button"
                                                                                 data-file-url="{{ route('createproduct.file', [$import, $file]) }}#toolbar=0&navpanes=0&scrollbar=0"
                                                                                 data-file-name="{{ $file->original_name ?: basename($file->file_path) }}"
-                                                                                class="js-open-document-file flex w-full items-center justify-between gap-3 rounded-lg border border-gray-200 px-3 py-2 text-left text-sm text-gray-700 hover:bg-blue-50">
+                                                                                class="flex items-center justify-between w-full gap-3 px-3 py-2 text-sm text-left text-gray-700 border border-gray-200 rounded-lg js-open-document-file hover:bg-blue-50">
                                                                                 <span class="truncate">{{ $file->original_name ?: basename($file->file_path) }}</span>
-                                                                                <span class="shrink-0 text-xs text-gray-400">{{ optional($file->created_at)->format('d/m/Y H:i') }}</span>
+                                                                                <span class="text-xs text-gray-400 shrink-0">{{ optional($file->created_at)->format('d/m/Y H:i') }}</span>
                                                                             </button>
                                                                         @endforeach
                                                                     </div>
@@ -485,7 +518,7 @@
                                                                 </div>
                                                             @if ($registrationFiles->isEmpty())
                                                                 <div>
-                                                                    <p class="rounded-lg border border-dashed border-gray-300 px-4 py-6 text-center text-sm text-gray-400" >
+                                                                    <p class="px-4 py-6 text-sm text-center text-gray-400 border border-gray-300 border-dashed rounded-lg" >
                                                                         ไม่มีไฟล์เอกสาร
                                                                     </p>
                                                                 </div>
@@ -498,9 +531,9 @@
                                                                             <button type="button"
                                                                                 data-file-url="{{ route('createproduct.file', [$import, $file]) }}#toolbar=0&navpanes=0&scrollbar=0"
                                                                                 data-file-name="{{ $file->original_name ?: basename($file->file_path) }}"
-                                                                                class="js-open-document-file flex w-full items-center justify-between gap-3 rounded-lg border border-gray-200 px-3 py-2 text-left text-sm text-gray-700 hover:bg-blue-50">
+                                                                                class="flex items-center justify-between w-full gap-3 px-3 py-2 text-sm text-left text-gray-700 border border-gray-200 rounded-lg js-open-document-file hover:bg-blue-50">
                                                                                 <span class="truncate">{{ $file->original_name ?: basename($file->file_path) }}</span>
-                                                                                <span class="shrink-0 text-xs text-gray-400">{{ optional($file->created_at)->format('d/m/Y H:i') }}</span>
+                                                                                <span class="text-xs text-gray-400 shrink-0">{{ optional($file->created_at)->format('d/m/Y H:i') }}</span>
                                                                             </button>
                                                                         @endforeach
                                                                     </div>
@@ -508,7 +541,7 @@
                                                                 </div>
                                                             @if ($approvalFiles->isEmpty())
                                                                 <div>
-                                                                    <p class="rounded-lg border border-dashed border-gray-300 px-4 py-6 text-center text-sm text-gray-400">
+                                                                    <p class="px-4 py-6 text-sm text-center text-gray-400 border border-gray-300 border-dashed rounded-lg">
                                                                         ไม่มีไฟล์เอกสาร
                                                                     </p>
                                                                 </div>
@@ -517,9 +550,9 @@
                                                                 <button type="button"
                                                                     data-file-url="{{ route('createproduct.additional-document', $import) }}#toolbar=0&navpanes=0&scrollbar=0"
                                                                     data-file-name="ไฟล์เอกสารเดิม"
-                                                                    class="js-open-document-file flex w-full items-center justify-between gap-3 rounded-lg border border-gray-200 px-3 py-2 text-left text-sm text-gray-700 hover:bg-blue-50">
+                                                                    class="flex items-center justify-between w-full gap-3 px-3 py-2 text-sm text-left text-gray-700 border border-gray-200 rounded-lg js-open-document-file hover:bg-blue-50">
                                                                     <span class="truncate">ไฟล์เอกสารเดิม</span>
-                                                                    <span class="shrink-0 text-xs text-blue-600">เปิดไฟล์</span>
+                                                                    <span class="text-xs text-blue-600 shrink-0">เปิดไฟล์</span>
                                                                 </button>
                                                             @endif
                                                         </div>
@@ -527,7 +560,7 @@
                                                 @endcan
                                                 @can('Inregister update')
                                                     <a href="{{ route('createproduct.edit', $import->id) }}"
-                                                        class="inline-flex items-center justify-center p-2 rounded-full text-white bg-yellow-500 hover:bg-yellow-600 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 transition-all duration-200"
+                                                        class="inline-flex items-center justify-center p-2 text-white transition-all duration-200 bg-yellow-500 rounded-full hover:bg-yellow-600 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
                                                         title="แก้ไข">
                                                         <svg xmlns="http://www.w3.org/2000/svg" fill="none"
                                                             viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"
@@ -539,7 +572,7 @@
                                                 @endcan
                                                 @can('Inregister delete')
                                                     <button onclick="confirmDelete({{ $import->id }})"
-                                                        class="inline-flex items-center justify-center p-2 rounded-full text-white bg-red-500 hover:bg-red-600 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-500 transition-all duration-200"
+                                                        class="inline-flex items-center justify-center p-2 text-white transition-all duration-200 bg-red-500 rounded-full hover:bg-red-600 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-500"
                                                         title="ลบ">
                                                         <svg xmlns="http://www.w3.org/2000/svg" fill="none"
                                                             viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"
@@ -560,7 +593,7 @@
                                     </tr>
                                 @empty
                                     <tr>
-                                        <td colspan="7" class="py-6 px-8 text-center text-gray-400">
+                                        <td colspan="7" class="px-8 py-6 text-center text-gray-400">
                                             ไม่มีข้อมูลทะเบียนนำเข้า</td>
                                     </tr>
                                 @endforelse
@@ -575,7 +608,7 @@
             </div>
 
             {{-- Mobile Card List --}}
-            <div class="lg:hidden space-y-2 sm:space-y-4">
+            <div class="space-y-2 lg:hidden sm:space-y-4">
                 @can('Inregister read')
                     @forelse ($imports as $index => $import)
                         @php
@@ -594,13 +627,13 @@
                         <div class="bg-white rounded-2xl shadow-sm border border-gray-100 p-2 sm:p-4 active:scale-[0.99] transition">
                             <div class="flex items-start justify-between gap-3 mb-3">
                                 <div class="min-w-0">
-                                    <div class="text-xs text-gray-400 mb-1">
+                                    <div class="mb-1 text-xs text-gray-400">
                                         #{{ $loop->iteration + ($imports->currentPage() - 1) * $imports->perPage() }}
                                     </div>
-                                    <h3 class="text-base font-bold text-gray-800 leading-snug line-clamp-2">
+                                    <h3 class="text-base font-bold leading-snug text-gray-800 line-clamp-2">
                                         {{ $import->chemical_name_th ?: '-' }}
                                     </h3>
-                                    <p class="text-sm text-gray-500 mt-1 line-clamp-1">
+                                    <p class="mt-1 text-sm text-gray-500 line-clamp-1">
                                         {{ $import->chemical_name_en ?: '-' }}
                                     </p>
                                 </div>
@@ -613,30 +646,30 @@
                             </div>
 
                             <div class="grid grid-cols-1 gap-2 text-sm">
-                                <div class="flex justify-between gap-3 border-t pt-3">
+                                <div class="flex justify-between gap-3 pt-3 border-t">
                                     <span class="text-gray-400">ผู้ขึ้นทะเบียน</span>
-                                    <span class="text-gray-700 font-medium text-right">
+                                    <span class="font-medium text-right text-gray-700">
                                         {{ $import->company->full_name ?? '-' }}
                                     </span>
                                 </div>
 
                                 <div class="flex justify-between gap-3">
                                     <span class="text-gray-400">ผู้จำหน่าย</span>
-                                    <span class="text-gray-700 font-medium text-right">
+                                    <span class="font-medium text-right text-gray-700">
                                         {{ $import->distributorCompany->full_name ?? '-' }}
                                     </span>
                                 </div>
 
                                 <div class="flex justify-between gap-3">
                                     <span class="text-gray-400">เลขทะเบียน</span>
-                                    <span class="text-gray-700 font-semibold text-right">
+                                    <span class="font-semibold text-right text-gray-700">
                                         {{ $import->registration_number ?: '-' }}
                                     </span>
                                 </div>
 
                                 <div class="flex justify-between gap-3">
                                     <span class="text-gray-400">วันหมดอายุ</span>
-                                    <span class="text-gray-700 font-semibold text-right">
+                                    <span class="font-semibold text-right text-gray-700">
                                         @if ($import->expired_license_date)
                                             {{ \Carbon\Carbon::parse($import->expired_license_date)->addYears(543)->format('d/m/Y') }}
                                         @else
@@ -684,11 +717,11 @@
                             </div>
                         </div>
                     @empty
-                        <div class="bg-white rounded-2xl border border-dashed border-gray-300 p-8 text-center">
-                            <p class="text-gray-400 font-medium">ไม่มีข้อมูลทะเบียนผลิต</p>
+                        <div class="p-8 text-center bg-white border border-gray-300 border-dashed rounded-2xl">
+                            <p class="font-medium text-gray-400">ไม่มีข้อมูลทะเบียนผลิต</p>
                         </div>
                     @endforelse
-                    <div class="px-1 sm:px-6 lg:px-8 py-2 sm:py-6 bg-white border-t border-gray-100 rounded-b-2xl">
+                    <div class="px-1 py-2 bg-white border-t border-gray-100 sm:px-6 lg:px-8 sm:py-6 rounded-b-2xl">
                         {{ $imports->appends(request()->query())->onEachSide(1)->links() }}
                     </div>
                 @endcan
@@ -697,15 +730,15 @@
         </div>
     </main>
 
-    <div id="documentFileModal" class="hidden fixed inset-0 bg-gray-900 bg-opacity-60 z-50 px-4 py-6">
-        <div class="bg-white max-w-5xl mx-auto h-full rounded-lg shadow-lg flex flex-col overflow-hidden">
+    <div id="documentFileModal" class="fixed inset-0 z-50 hidden px-4 py-6 bg-gray-900 bg-opacity-60">
+        <div class="flex flex-col h-full max-w-5xl mx-auto overflow-hidden bg-white rounded-lg shadow-lg">
             <div class="flex items-center justify-between gap-4 px-5 py-4 border-b">
                 <h3 id="documentFileModalTitle" class="text-lg font-semibold text-gray-700 truncate">เอกสาร</h3>
-                <button type="button" id="closeDocumentFileModal" class="text-gray-500 hover:text-gray-800 text-2xl leading-none">
+                <button type="button" id="closeDocumentFileModal" class="text-2xl leading-none text-gray-500 hover:text-gray-800">
                     &times;
                 </button>
             </div>
-            <div id="documentFileViewer" class="flex-1 bg-gray-100 overflow-auto p-4 flex flex-col items-center gap-4" oncontextmenu="return false;"></div>
+            <div id="documentFileViewer" class="flex flex-col items-center flex-1 gap-4 p-4 overflow-auto bg-gray-100" oncontextmenu="return false;"></div>
         </div>
     </div>
 
@@ -787,7 +820,7 @@
                             </button>
                         </div>
                         <div id="swalDocumentViewer" class="document-pdf-stage">
-                            <p class="py-10 text-center text-sm text-gray-400">เลือกไฟล์จากรายการด้านซ้าย</p>
+                            <p class="py-10 text-sm text-center text-gray-400">เลือกไฟล์จากรายการด้านซ้าย</p>
                         </div>
                     </div>
                 </div>
@@ -834,10 +867,10 @@
 
         async function renderDocumentPdf(url) {
             const token = ++documentRenderToken;
-            documentFileViewer.innerHTML = '<p class="text-gray-500 py-8">กำลังโหลดเอกสาร...</p>';
+            documentFileViewer.innerHTML = '<p class="py-8 text-gray-500">กำลังโหลดเอกสาร...</p>';
 
             if (!window.pdfjsLib) {
-                documentFileViewer.innerHTML = '<p class="text-red-500 py-8">ไม่สามารถโหลดตัวอ่าน PDF ได้</p>';
+                documentFileViewer.innerHTML = '<p class="py-8 text-red-500">ไม่สามารถโหลดตัวอ่าน PDF ได้</p>';
                 return;
             }
 
@@ -864,7 +897,7 @@
                 }
             } catch (error) {
                 if (token === documentRenderToken) {
-                    documentFileViewer.innerHTML = '<p class="text-red-500 py-8">ไม่สามารถแสดงเอกสารนี้ได้</p>';
+                    documentFileViewer.innerHTML = '<p class="py-8 text-red-500">ไม่สามารถแสดงเอกสารนี้ได้</p>';
                 }
             }
         }
@@ -994,7 +1027,7 @@
             if (!activePdf || !activePdfViewer) return;
 
             const token = ++documentRenderToken;
-            activePdfViewer.innerHTML = '<p class="m-auto text-gray-500 py-8">กำลังโหลดเอกสาร...</p>';
+            activePdfViewer.innerHTML = '<p class="py-8 m-auto text-gray-500">กำลังโหลดเอกสาร...</p>';
 
             try {
                 if (activePdfRenderTask) {
@@ -1027,7 +1060,7 @@
             } catch (error) {
                 if (error?.name === 'RenderingCancelledException') return;
                 if (token === documentRenderToken) {
-                    activePdfViewer.innerHTML = '<p class="m-auto text-red-500 py-8">ไม่สามารถแสดงเอกสารนี้ได้</p>';
+                    activePdfViewer.innerHTML = '<p class="py-8 m-auto text-red-500">ไม่สามารถแสดงเอกสารนี้ได้</p>';
                 }
             }
         }
@@ -1035,10 +1068,10 @@
         async function loadDocumentPdf(url, viewer = documentFileViewer) {
             resetPdfState();
             const token = ++documentRenderToken;
-            viewer.innerHTML = '<p class="m-auto text-gray-500 py-8">กำลังโหลดเอกสาร...</p>';
+            viewer.innerHTML = '<p class="py-8 m-auto text-gray-500">กำลังโหลดเอกสาร...</p>';
 
             if (!window.pdfjsLib) {
-                viewer.innerHTML = '<p class="m-auto text-red-500 py-8">ไม่สามารถโหลดตัวอ่าน PDF ได้</p>';
+                viewer.innerHTML = '<p class="py-8 m-auto text-red-500">ไม่สามารถโหลดตัวอ่าน PDF ได้</p>';
                 return;
             }
 
@@ -1055,7 +1088,7 @@
                 await renderActivePdfPage();
             } catch (error) {
                 if (token === documentRenderToken) {
-                    viewer.innerHTML = '<p class="m-auto text-red-500 py-8">ไม่สามารถแสดงเอกสารนี้ได้</p>';
+                    viewer.innerHTML = '<p class="py-8 m-auto text-red-500">ไม่สามารถแสดงเอกสารนี้ได้</p>';
                 }
             }
         }
