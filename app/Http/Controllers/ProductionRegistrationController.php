@@ -45,6 +45,14 @@ class ProductionRegistrationController extends Controller
             });
         }
 
+        if ($request->filled('trade_name_search')) {
+            $rawTradeNameSearch = (string) $request->input('trade_name_search');
+            $normalizedTradeName = mb_strtolower(preg_replace('/\s+/', '', $rawTradeNameSearch));
+            $tradeNameLike = '%' . $normalizedTradeName . '%';
+
+            $query->whereRaw("REPLACE(LOWER(trade_name), ' ', '') LIKE ?", [$tradeNameLike]);
+        }
+
         // ส่วนของการกรองตามช่วงวันหมดอายุ (expiry_date_from/to) ยังคงเดิม
         if ($request->filled('expiry_date_from') && $request->filled('expiry_date_to')) {
             $query->whereBetween('expired_license_date', [
@@ -289,9 +297,9 @@ class ProductionRegistrationController extends Controller
                 'expired_license_date'  => $this->convertDate($request->input('expired_license_date')),
                 'registration_expiry_date'  => $this->convertDate($request->input('registration_expiry_date')),
                 'production_license_expiry' => $this->convertDate($request->input('production_license_expiry')),
-                // 'possession_form_expiry'    => $this->convertDate($request->input('possession_form_expiry')),
+                'possession_form_expiry'    => $this->convertDate($request->input('possession_form_expiry')),
                 'application_received_date' => $this->convertDate($request->input('application_received_date')),
-                // 'expired_at'                => $this->convertDate($request->input('expired_at')),
+                'expired_at'                => $this->convertDate($request->input('expired_at')),
                 'date_submit_request'       => $this->convertDate($request->input('date_submit_request')),
                 'date_request_phase_3'      => $this->convertDate($request->input('date_request_phase_3')),
             ]);
@@ -317,14 +325,14 @@ class ProductionRegistrationController extends Controller
                 'plant' => 'nullable|string|max:255',
                 'pests' => 'nullable|string|max:255',
                 'production_license_number' => 'nullable|string|max:255',
-                'production_license_expiry' => 'nullable',
+                'production_license_expiry' => 'nullable|date',
                 'production_license_quantity' => 'nullable|string|max:255',
                 'possession_form_wo2' => 'nullable|string|max:255',
-                'possession_form_expiry' => 'nullable|string',
+                'possession_form_expiry' => 'nullable|date',
                 'packaging_size_details' => 'nullable|string|max:1000',
                 'registration_number_pass' => 'nullable|string|max:255',
                 'registration_expiry_date' => 'nullable|date',
-                'expired_at' => 'nullable|string',
+                'expired_at' => 'nullable|date',
                 'status_date' => 'nullable|string|max:255',
                 'remarks' => 'nullable|string|max:1000',
                 'image' => 'nullable|image|max:2048', // optional: 'image' if you want to allow changing image
