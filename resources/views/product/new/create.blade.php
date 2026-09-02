@@ -22,13 +22,16 @@
                             <div style="height: 50px;" class="text-gray-500 dropdown-btn" id="registrantBtn">--
                                 เลือกบริษัทที่ขึ้นทะเบียน --</div>
                             <div class="dropdown-list" id="registrantList">
+                                <div class="px-3 pt-3 pb-2 border-b border-gray-200">
+                                    <input type="text" class="w-full p-2 text-sm border rounded-full registrant-search focus:outline-none focus:ring-2 focus:ring-blue-500" placeholder="ค้นหาบริษัทที่ขึ้นทะเบียน" />
+                                </div>
                                 <div class="text-gray-500 dropdown-item" data-value="">-- เลือกบริษัทที่ขึ้นทะเบียน --
                                 </div>
                                 @foreach ($companies as $company)
                                     {{-- @if ($company->id != 4) --}}
-                                        <div class="dropdown-item" data-value="{{ $company->full_name }}">
-                                            {{ $company->full_name }}
-                                        </div>
+                                    <div class="dropdown-item" data-value="{{ $company->full_name }}">
+                                        {{ $company->full_name }}
+                                    </div>
                                     {{-- @endif --}}
                                 @endforeach
                             </div>
@@ -118,13 +121,22 @@
                             <div style="height: 50px;" class="text-gray-500 dropdown-btn" id="importerBtn">--
                                 เลือกผู้นำเข้า --</div>
                             <div class="dropdown-list" id="importerList">
+                                <div class="px-3 pt-3 pb-2 border-b border-gray-200">
+                                    <input type="text" class="w-full p-2 text-sm border rounded-full importer-search focus:outline-none focus:ring-2 focus:ring-blue-500" placeholder="ค้นหาชื่อผู้นำเข้า" />
+                                </div>
                                 <div class="text-gray-500 dropdown-item" data-value="">-- เลือกผู้นำเข้า --</div>
                                 @foreach ($companies as $company)
-                                    {{-- @if ($company->id != 4) --}}
+                                    @if (
+                                        $company->name == 'IC' ||
+                                            $company->name == 'AI' ||
+                                            $company->name == 'UP' ||
+                                            $company->name == 'UPI' ||
+                                            $company->name == 'UP+AI' ||
+                                            $company->name == 'AI+UP')
                                         <div class="dropdown-item" data-value="{{ $company->full_name }}">
                                             {{ $company->full_name }}
                                         </div>
-                                    {{-- @endif --}}
+                                    @endif
                                 @endforeach
                             </div>
                         </div>
@@ -141,6 +153,9 @@
                             <div style="height: 50px;" class="text-gray-500 dropdown-btn" id="distributorBtn">--
                                 เลือกผู้จำหน่าย --</div>
                             <div class="dropdown-list" id="distributorList">
+                                <div class="px-3 pt-3 pb-2 border-b border-gray-200">
+                                    <input type="text" class="w-full p-2 text-sm border rounded-full distributor-search focus:outline-none focus:ring-2 focus:ring-blue-500" placeholder="ค้นหาชื่อผู้จำหน่าย" />
+                                </div>
                                 <div class="text-gray-500 dropdown-item" data-value="">-- เลือกผู้จำหน่าย --</div>
                                 @foreach ($companies as $company)
                                     <div class="dropdown-item" data-value="{{ $company->full_name }}">
@@ -272,7 +287,7 @@
                             <p class="mt-1 text-xs italic text-red-500">{{ $message }}</p>
                         @enderror
                     </div>
-{{-- 
+                    {{-- 
                     <div>
                         <label for="quantity" class="block mx-3 mt-3 mb-1 text-base text-gray-700">ปริมาณ</label>
                         <input type="text" name="quantity" id="quantity" value="{{ old('quantity') }}"
@@ -552,20 +567,24 @@
                     input.value = value;
                 }
 
-                // Initial state
                 const initial = [...items].find(item => item.dataset.value === "");
                 if (initial) updateBtn(initial.textContent, "");
 
-                // Restore old value from Laravel if available
                 if (oldValue) {
                     const match = [...items].find(i => i.dataset.value == oldValue);
                     if (match) updateBtn(match.textContent, match.dataset.value);
                 }
 
+                const searchBox = list.querySelector('.' + (listId === 'distributorList' ? 'distributor-search' : listId === 'importerList' ? 'importer-search' : 'registrant-search'));
+
                 btn.addEventListener('click', (event) => {
-                    event.stopPropagation(); // Prevent document click from closing immediately
+                    event.stopPropagation();
                     list.classList.toggle('open');
                     btn.classList.toggle('open');
+
+                    if (list.classList.contains('open') && searchBox) {
+                        setTimeout(() => searchBox.focus(), 50);
+                    }
                 });
 
                 items.forEach(item => {
@@ -573,6 +592,11 @@
                         updateBtn(item.textContent, item.dataset.value);
                         list.classList.remove('open');
                         btn.classList.remove('open');
+
+                        if (searchBox) searchBox.value = "";
+                        items.forEach(option => {
+                            option.style.display = "";
+                        });
                     });
                 });
 
@@ -580,8 +604,24 @@
                     if (!btn.closest('.dropdown').contains(e.target) && !list.contains(e.target)) {
                         list.classList.remove('open');
                         btn.classList.remove('open');
+
+                        if (searchBox) {
+                            searchBox.value = "";
+                            items.forEach(option => option.style.display = "");
+                        }
                     }
                 });
+
+                if (searchBox) {
+                    searchBox.addEventListener('input', (event) => {
+                        const keyword = event.target.value.trim().toLowerCase();
+                        items.forEach(option => {
+                            const text = option.textContent.toLowerCase();
+                            const matches = !keyword || text.includes(keyword);
+                            option.style.display = matches ? '' : 'none';
+                        });
+                    });
+                }
             }
 
             // Setup for all dropdowns
